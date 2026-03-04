@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>ブロック崩し：Solo / VS / Online（難易度＋ステージ＋ラウンド）</title>
+  <title>ブロック崩し：Solo / VS / Online（ランキング）</title>
   <style>
     :root{
       --bg0:#070A12;
@@ -30,7 +30,6 @@
       user-select:none;
     }
 
-    /* ===== Screens ===== */
     .screen{position:fixed; inset:0; display:none; padding: clamp(10px, 2.2vw, 18px); gap: 12px;}
     .screen.active{display:flex; flex-direction:column;}
     .glass{
@@ -41,7 +40,16 @@
       backdrop-filter: blur(10px);
     }
 
-    /* ===== Header ===== */
+    /* Online compact */
+    .compact .header{padding: 10px 12px;}
+    .compact .brand h1{font-size: 14px;}
+    .compact .brand small{font-size: 11px;}
+    .compact .pill{padding: 6px 9px; font-size: 11px;}
+    .compact .btn{padding: 9px 11px; border-radius: 13px;}
+    .compact .hud{top:8px; left:8px; right:8px;}
+    .compact .gameWrap{border-radius: 16px;}
+    .compact .touchBtn{padding: 12px 10px; font-size: 13px;}
+
     .header{
       display:flex; align-items:center; justify-content:space-between; gap:10px;
       padding: 12px 14px;
@@ -72,7 +80,11 @@
       color:var(--text);
       font-weight:900;
       font-size: 12px;
+      transform: translateZ(0);
     }
+    .pill.scorePulse{animation: scorePulse .18s ease;}
+    @keyframes scorePulse{from{transform:scale(1.06)} to{transform:scale(1)}}
+
     .dot{width:8px;height:8px;border-radius:99px;background:var(--accent); box-shadow: 0 0 18px rgba(103,232,249,.6)}
     .btn{
       appearance:none; border:none; cursor:pointer;
@@ -96,7 +108,6 @@
       border: 1px solid rgba(251,113,133,.35);
     }
 
-    /* ===== Menu body ===== */
     .menuBody{
       flex:1;
       display:grid;
@@ -111,6 +122,7 @@
       border: 1px solid var(--line);
       border-radius: 18px;
       background: rgba(0,0,0,.22);
+      overflow:auto;
     }
     .title{margin:0 0 8px 0; font-size: 14px; font-weight: 1000; letter-spacing:.2px;}
     .hint{color: rgba(234,240,255,.86); font-weight:800; font-size:12px; line-height:1.55;}
@@ -119,7 +131,6 @@
       border: 1px solid var(--line); background: rgba(255,255,255,.08);
       font-weight: 1000; font-size: 11px; margin: 0 2px;
     }
-
     .selectRow{display:flex; justify-content:space-between; gap:10px; align-items:center; flex-wrap:wrap;}
     select{
       appearance:none;
@@ -135,7 +146,35 @@
     .bigActions{display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;}
     @media (max-width: 420px){ .bigActions{grid-template-columns:1fr} }
 
-    /* ===== Game screen ===== */
+    .rankList{
+      margin-top:10px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      overflow:hidden;
+      background: rgba(0,0,0,.18);
+    }
+    .rankHead{
+      display:flex; justify-content:space-between; gap:10px;
+      padding:10px 12px;
+      font-weight:1000;
+      color: rgba(234,240,255,.9);
+      background: rgba(255,255,255,.06);
+      border-bottom:1px solid var(--line);
+      font-size:12px;
+    }
+    .rankRow{
+      display:flex; justify-content:space-between; gap:10px;
+      padding:9px 12px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      font-weight:900;
+      font-size:12px;
+      color: rgba(234,240,255,.88);
+    }
+    .rankRow:last-child{border-bottom:none}
+    .rankMode{opacity:.95}
+    .rankScore{color: var(--accent); font-weight:1000}
+    .rankMeta{opacity:.8}
+
     .gameWrap{
       flex:1;
       min-height:0;
@@ -155,7 +194,6 @@
         linear-gradient(180deg, rgba(10,16,40,.85), rgba(6,8,16,.92));
     }
 
-    /* HUD overlay inside game */
     .hud{
       position:absolute;
       left: 10px; right: 10px; top: 10px;
@@ -163,12 +201,8 @@
       pointer-events:none;
     }
     .hudLeft, .hudRight{display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
-    .hudBtnRow{
-      pointer-events:auto;
-      display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;
-    }
+    .hudBtnRow{pointer-events:auto; display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;}
 
-    /* Modal overlay */
     .overlay{
       position:absolute; inset:0;
       display:none;
@@ -178,7 +212,7 @@
     }
     .overlay.on{display:flex;}
     .modal{
-      width:min(680px, 92vw);
+      width:min(720px, 92vw);
       border-radius: 18px;
       border:1px solid var(--line);
       background: linear-gradient(180deg, rgba(10,16,40,.88), rgba(5,7,14,.88));
@@ -208,7 +242,6 @@
       outline:none;
     }
 
-    /* Touch controls */
     .touchHint{
       position:absolute; left: 10px; bottom: 64px;
       padding: 8px 10px;
@@ -222,7 +255,6 @@
       display:none;
     }
 
-    /* single row */
     .touchBar{
       position:absolute; left: 10px; right: 10px; bottom: 10px;
       display:none;
@@ -230,7 +262,6 @@
       pointer-events:auto;
       z-index: 3;
     }
-    /* dual row for VS (P2 top row + P1 bottom row) */
     .touchBarDual{
       position:absolute; left: 10px; right: 10px; bottom: 10px;
       display:none;
@@ -239,11 +270,7 @@
       z-index: 3;
       flex-direction:column;
     }
-    .touchRow{
-      display:flex;
-      gap:10px;
-    }
-
+    .touchRow{display:flex; gap:10px;}
     .touchBtn{
       flex:1;
       padding: 14px 12px;
@@ -262,6 +289,14 @@
       .touchBarDual{display:flex}
       .touchHint{display:block}
     }
+
+    /* 端末別説明（自動） */
+    .pcOnly{display:block}
+    .mobileOnly{display:none}
+    @media (max-width: 920px), (pointer: coarse){
+      .pcOnly{display:none}
+      .mobileOnly{display:block}
+    }
   </style>
 </head>
 <body>
@@ -273,7 +308,7 @@
       <div class="logo"></div>
       <div>
         <h1>ブロック崩し <span style="opacity:.8">Solo / VS / Online</span></h1>
-        <small>スマホ最適化（画面分離）/ GitHub Pages OK</small>
+        <small>ランキング / 端末別操作説明 / GitHub Pages OK</small>
       </div>
     </div>
     <div class="headerRight">
@@ -294,46 +329,49 @@
           <option value="3">3（むずい）</option>
         </select>
       </div>
-      <div class="hint" style="margin-top:10px">
-        Lvが上がるほど <b style="color:var(--accent)">速度↑</b> / <b style="color:var(--accent)">ブロック↑</b> / <b style="color:var(--accent)">硬い↑</b> / <b style="color:var(--accent)">ライフ↓</b>
-      </div>
 
       <div class="hint" style="margin-top:10px">
-        <b style="color:var(--accent2)">ソロはステージ制</b>：クリアで次面（徐々に難化）<br/>
-        <b style="color:var(--accent2)">対戦はラウンド制</b>：先に<strong>2勝</strong>で勝ち
+        Lvが上がるほど <b style="color:var(--accent)">速度↑</b> / <b style="color:var(--accent)">ブロック↑</b> / <b style="color:var(--accent)">硬い↑</b> / <b style="color:var(--accent)">ライフ↓</b>
       </div>
 
       <div class="bigActions">
         <button class="btn" id="btnStartSolo">ソロ開始</button>
         <button class="btn secondary" id="btnStartVS">対戦（同端末）</button>
       </div>
-
       <div class="bigActions" style="margin-top:10px">
         <button class="btn secondary" id="btnStartOnline">オンライン対戦</button>
-        <button class="btn secondary" id="btnCredits">注意</button>
+        <button class="btn secondary" id="btnResetRank">ランキング消去</button>
       </div>
 
-      <div class="hint" style="margin-top:10px; opacity:.9">
-        オンラインは「合言葉コード（Offer/Answer）」をコピペして接続します。<br/>
-        ※ iPhone等で音が鳴らない場合は、最初にどこかタップしてから開始。
+      <div class="hint" style="margin-top:10px; opacity:.92">
+        <b style="color:var(--accent2)">オンラインはURL共有で簡単接続</b>（コピペほぼ不要）<br/>
+        ※ ネットワーク制限によっては接続できないことがあります（学校/会社Wi-Fiなど）
       </div>
     </div>
 
     <div class="glass card">
-      <h3 class="title">操作</h3>
-      <div class="hint">
+      <h3 class="title">操作（端末に合わせて自動表示）</h3>
+
+      <div class="pcOnly hint">
         <b style="color:var(--accent)">PC</b><br/>
         ・P1：<span class="kbd">←</span><span class="kbd">→</span><br/>
-        ・P2（対戦）：<span class="kbd">A</span><span class="kbd">D</span><br/>
+        ・P2（同端末対戦）：<span class="kbd">A</span><span class="kbd">D</span><br/>
         ・開始：<span class="kbd">Space</span>　・一時停止：<span class="kbd">P</span>　・メニュー：<span class="kbd">Esc</span>
       </div>
-      <div class="hint" style="margin-top:10px">
+
+      <div class="mobileOnly hint">
         <b style="color:var(--accent)">スマホ</b><br/>
-        ・画面ドラッグでバー移動（対戦はコート内で操作対象が変わる）<br/>
-        ・同端末対戦は <b style="color:var(--accent2)">P1/P2の◀▶ボタン</b> でも操作OK（2段表示）
+        ・画面ドラッグでバー移動（同端末対戦はコート内で操作対象が変わる）<br/>
+        ・同端末対戦は <b style="color:var(--accent2)">P1/P2の◀▶（2段）</b> でも操作OK<br/>
+        ・オンラインは <b style="color:var(--accent2)">自分の◀▶</b> だけで操作
       </div>
-      <div class="hint" style="margin-top:10px; opacity:.9">
-        ※ オンライン対戦：Hostが進行（物理）を担当し、Joinは操作を送ります
+
+      <h3 class="title" style="margin-top:14px">ランキング（TOP10）</h3>
+      <div class="hint">この端末に保存されます（GitHub PagesでもOK）。</div>
+
+      <div class="rankList" id="rankList">
+        <div class="rankHead"><span>順位 / モード</span><span>スコア</span></div>
+        <!-- rows inserted -->
       </div>
     </div>
   </div>
@@ -361,7 +399,7 @@
 
     <div class="hud">
       <div class="hudLeft">
-        <div class="pill"><span class="dot"></span> SCORE: <span id="soloScore">0</span></div>
+        <div class="pill" id="soloScorePill"><span class="dot"></span> SCORE: <span id="soloScore">0</span></div>
         <div class="pill"><span class="dot" style="background:var(--bad)"></span> LIFE: <span id="soloLives">3</span></div>
       </div>
       <div class="hudRight hudBtnRow">
@@ -411,8 +449,8 @@
 
     <div class="hud">
       <div class="hudLeft">
-        <div class="pill"><span class="dot"></span> P1 W:<span id="p1Wins">0</span> S:<span id="p1Score">0</span> L:<span id="p1Lives">3</span></div>
-        <div class="pill"><span class="dot" style="background:var(--accent2)"></span> P2 W:<span id="p2Wins">0</span> S:<span id="p2Score">0</span> L:<span id="p2Lives">3</span></div>
+        <div class="pill" id="p1ScorePill"><span class="dot"></span> P1 W:<span id="p1Wins">0</span> S:<span id="p1Score">0</span> L:<span id="p1Lives">3</span></div>
+        <div class="pill" id="p2ScorePill"><span class="dot" style="background:var(--accent2)"></span> P2 W:<span id="p2Wins">0</span> S:<span id="p2Score">0</span> L:<span id="p2Lives">3</span></div>
       </div>
       <div class="hudRight hudBtnRow">
         <button class="btn secondary" id="vsBtnPause">一時停止</button>
@@ -433,8 +471,6 @@
     </div>
 
     <div class="touchHint">スマホ: コート内ドラッグ or 下のP2/P1◀▶</div>
-
-    <!-- ① P2 row + P1 row -->
     <div class="touchBarDual">
       <div class="touchRow">
         <button class="touchBtn" id="vsP2Left">◀（P2）</button>
@@ -449,13 +485,13 @@
 </section>
 
 <!-- ===== ONLINE VS SCREEN ===== -->
-<section id="screenOnline" class="screen">
+<section id="screenOnline" class="screen compact">
   <div class="header glass">
     <div class="brand">
       <div class="logo"></div>
       <div>
         <h1>オンライン対戦</h1>
-        <small>合言葉コード方式（Offer/Answer）</small>
+        <small>URL共有で接続（Offer/Answerをリンク化）</small>
       </div>
     </div>
     <div class="headerRight">
@@ -470,8 +506,8 @@
 
     <div class="hud">
       <div class="hudLeft">
-        <div class="pill"><span class="dot"></span> P1 W:<span id="onP1Wins">0</span> S:<span id="onP1Score">0</span> L:<span id="onP1Lives">3</span></div>
-        <div class="pill"><span class="dot" style="background:var(--accent2)"></span> P2 W:<span id="onP2Wins">0</span> S:<span id="onP2Score">0</span> L:<span id="onP2Lives">3</span></div>
+        <div class="pill" id="onP1ScorePill"><span class="dot"></span> P1 W:<span id="onP1Wins">0</span> S:<span id="onP1Score">0</span> L:<span id="onP1Lives">3</span></div>
+        <div class="pill" id="onP2ScorePill"><span class="dot" style="background:var(--accent2)"></span> P2 W:<span id="onP2Wins">0</span> S:<span id="onP2Score">0</span> L:<span id="onP2Lives">3</span></div>
         <div class="pill"><span class="dot" style="background:var(--bad)"></span> ROUND: <span id="onRound">1</span></div>
       </div>
       <div class="hudRight hudBtnRow">
@@ -490,28 +526,26 @@
           <button class="btn secondary" id="onBtnJoin">Join（子）</button>
         </div>
 
-        <div class="sub" id="onSub">
-          <div style="margin-top:10px; font-weight:1000">コード欄</div>
-          <textarea id="onCodeIn" placeholder="ここに相手のコードを貼り付け（JoinならOffer / HostならAnswer）"></textarea>
-          <div class="actions" style="margin-top:10px">
-            <button class="btn secondary" id="onBtnMakeCode">コード生成</button>
-            <button class="btn secondary" id="onBtnCopyOut">出力をコピー</button>
+        <div class="sub" style="margin-top:10px">
+          <div style="font-weight:1000;margin-bottom:6px">かんたん接続（URL共有）</div>
+          <div class="actions">
+            <button class="btn secondary" id="onBtnMakeInvite">招待リンク作成（Host）</button>
+            <button class="btn secondary" id="onBtnMakeJoin">参加リンク作成（Join）</button>
           </div>
-          <div style="margin-top:10px; font-weight:1000">出力（相手に送る）</div>
-          <textarea id="onCodeOut" placeholder="生成されたコードがここに出ます"></textarea>
-          <div class="hint" style="margin-top:10px">
-            1) Hostが「Host」→「コード生成」で <b style="color:var(--accent)">Offer</b> を相手へ送る<br/>
-            2) JoinがOfferを貼って「コード生成」で <b style="color:var(--accent)">Answer</b> をHostへ返す<br/>
-            3) HostがAnswerを貼って「コード生成」→ 接続完了
+          <div class="actions" style="margin-top:10px">
+            <button class="btn secondary" id="onBtnShareLink">リンクを共有</button>
+            <button class="btn secondary" id="onBtnCopyLink">リンクをコピー</button>
+          </div>
+          <textarea id="onLinkBox" placeholder="ここにリンクが出ます（共有/コピーできます）"></textarea>
+          <div class="hint" style="margin-top:8px;opacity:.9">
+            ・Host：招待リンク作成 → 相手に送る<br/>
+            ・Join：招待リンクを開く → 参加リンク作成 → Hostに送る → Hostが開く
           </div>
         </div>
       </div>
     </div>
 
     <div class="touchHint" id="onTouchHint">スマホ: ◀▶（あなたの操作）</div>
-
-    <!-- Online: each side only controls their own paddle.
-         Host = P1 controls bottom, Join = P2 controls top -->
     <div class="touchBar" id="onTouchBar">
       <button class="touchBtn" id="onLeft">◀</button>
       <button class="touchBtn" id="onRight">▶</button>
@@ -538,7 +572,6 @@
       o.frequency.setValueAtTime(freq, t0);
       g.gain.setValueAtTime(0.0001, t0);
       g.gain.exponentialRampToValueAtTime(vol, t0 + 0.01);
-      g.gain.exponentialRampToTo = null;
       g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
       o.connect(g); g.connect(audioCtx.destination);
       o.start(t0);
@@ -552,6 +585,55 @@
     2: { lives:3, rows:7, cols:10, hardChance:0.25, baseSpeed: 380, paddleScale:1.00 },
     3: { lives:2, rows:8, cols:11, hardChance:0.34, baseSpeed: 460, paddleScale:0.92 },
   };
+
+  // ===== Ranking (localStorage) =====
+  const RANK_KEY = "breakout_rankings_v2";
+  function loadRank(){
+    try{ return JSON.parse(localStorage.getItem(RANK_KEY) || "[]"); }catch(e){ return []; }
+  }
+  function saveRank(list){
+    localStorage.setItem(RANK_KEY, JSON.stringify(list));
+  }
+  function addRankEntry(entry){
+    const list = loadRank();
+    list.push(entry);
+    list.sort((a,b)=>b.score-a.score);
+    saveRank(list.slice(0, 100)); // keep some history
+    renderRank();
+  }
+  function clearRank(){
+    localStorage.removeItem(RANK_KEY);
+    renderRank();
+  }
+  function fmtDate(ts){
+    const d = new Date(ts);
+    const mm = String(d.getMonth()+1).padStart(2,"0");
+    const dd = String(d.getDate()).padStart(2,"0");
+    const hh = String(d.getHours()).padStart(2,"0");
+    const mi = String(d.getMinutes()).padStart(2,"0");
+    return `${mm}/${dd} ${hh}:${mi}`;
+  }
+  function modeLabel(m){
+    if(m==="SOLO") return "SOLO";
+    if(m==="VS_LOCAL") return "VS(同端末)";
+    if(m==="VS_ONLINE") return "ONLINE";
+    return m;
+  }
+  function renderRank(){
+    const box = document.getElementById("rankList");
+    const list = loadRank().slice(0,10);
+    // keep header
+    box.innerHTML = `
+      <div class="rankHead"><span>順位 / モード</span><span>スコア</span></div>
+      ${list.length ? "" : `<div class="rankRow"><span class="rankMeta">まだ記録がありません</span><span class="rankMeta">-</span></div>`}
+      ${list.map((r,i)=>`
+        <div class="rankRow">
+          <span class="rankMode">#${i+1} ${modeLabel(r.mode)} Lv${r.diff} <span class="rankMeta">${fmtDate(r.ts)}</span></span>
+          <span class="rankScore">${r.score}</span>
+        </div>
+      `).join("")}
+    `;
+  }
 
   // ===== Screens / UI =====
   const screenMenu = document.getElementById("screenMenu");
@@ -567,7 +649,7 @@
   const btnStartSolo = document.getElementById("btnStartSolo");
   const btnStartVS   = document.getElementById("btnStartVS");
   const btnStartOnline = document.getElementById("btnStartOnline");
-  const btnCredits = document.getElementById("btnCredits");
+  const btnResetRank = document.getElementById("btnResetRank");
 
   function showScreen(which){
     for(const el of [screenMenu,screenSolo,screenVS,screenOnline]) el.classList.remove("active");
@@ -575,6 +657,11 @@
     if(which==="solo") screenSolo.classList.add("active");
     if(which==="vs")   screenVS.classList.add("active");
     if(which==="online") screenOnline.classList.add("active");
+  }
+
+  // ===== device detect for help button text =====
+  function isMobileLike(){
+    return matchMedia("(pointer: coarse)").matches || innerWidth <= 920;
   }
 
   // ===== Input shared =====
@@ -585,8 +672,8 @@
     if(e.code==="KeyA") input.a=true;
     if(e.code==="KeyD") input.d=true;
 
-    if(e.code==="Space"){ e.preventDefault(); activeGame?.startOrServe(); }
-    if(e.code==="KeyP"){ e.preventDefault(); activeGame?.togglePause(); }
+    if(e.code==="Space"){ e.preventDefault(); activeGame?.startOrServe?.(); }
+    if(e.code==="KeyP"){ e.preventDefault(); activeGame?.togglePause?.(); }
     if(e.code==="Escape"){ e.preventDefault(); goMenu(); }
   }, {passive:false});
   window.addEventListener("keyup", (e)=>{
@@ -597,24 +684,35 @@
   });
 
   function goMenu(){
-    activeGame?.stop();
+    activeGame?.stop?.();
     activeGame = null;
+    // URL hash clean (online share)
+    history.replaceState(null, "", location.pathname + location.search);
     showScreen("menu");
+    renderRank();
   }
 
   btnMenuHow.onclick = () => {
-    alert(
-`操作
-PC:
-  P1: ← →
-  P2(対戦): A D
-  開始: Space / 一時停止: P / メニュー: Esc
+    if(isMobileLike()){
+      alert(
+`スマホ操作
+・ソロ：ドラッグ or ◀▶
+・同端末対戦：コート内ドラッグ or P1/P2の◀▶（2段）
+・オンライン：◀▶（自分だけ操作）
 
-スマホ:
-  ソロ: ドラッグ or ◀▶
-  同端末対戦: コート内ドラッグ or P1/P2の◀▶（2段）
-  オンライン: ◀▶（自分の操作）`
-    );
+ヒント
+・最初にどこかタップすると音が鳴りやすい`
+      );
+    }else{
+      alert(
+`PC操作
+・P1：← →
+・P2（同端末対戦）：A D
+・開始：Space
+・一時停止：P
+・メニュー：Esc`
+      );
+    }
   };
 
   btnMenuMute.onclick = () => {
@@ -623,13 +721,11 @@ PC:
     beep(SFX_ON?660:220, 0.07, "square", 0.06);
   };
 
-  btnCredits.onclick = () => {
-    alert(
-`オンライン対戦について
-・サーバ不要のWebRTCを使います
-・ただし接続のために「Offer/Answerコード」を手動で交換します
-・会社や学校のネットワーク等でWebRTCが塞がれている場合、接続できないことがあります`
-    );
+  btnResetRank.onclick = () => {
+    if(confirm("ランキングを消去しますか？（この端末の記録のみ）")){
+      clearRank();
+      beep(220,0.08,"sine",0.06);
+    }
   };
 
   // ===== Difficulty state =====
@@ -648,7 +744,7 @@ PC:
     beep(620,0.05,"triangle",0.06);
   });
 
-  // ===== Game base helpers =====
+  // ===== Helpers =====
   function reflectBallFromPaddle(ball, paddle, dirY){
     const hit = (ball.x - paddle.x) / (paddle.w/2);
     const angle = clamp(hit, -1, 1) * (Math.PI * 0.36);
@@ -675,17 +771,21 @@ PC:
     ctx.closePath();
   }
 
-  function encodeSDP(obj){
-    const json = JSON.stringify(obj);
-    const b64 = btoa(unescape(encodeURIComponent(json)));
-    return b64;
-  }
-  function decodeSDP(code){
-    const json = decodeURIComponent(escape(atob(code.trim())));
-    return JSON.parse(json);
+  // score FX (floating +xxx)
+  function addFloatText(arr, x,y, text, hue=185){
+    arr.push({x,y, text, hue, t:0, life:0.75, vy:-48});
   }
 
-  // ===== SOLO GAME (Stage progression) =====
+  // HUD pulse
+  function pulse(el){
+    if(!el) return;
+    el.classList.remove("scorePulse");
+    // force reflow
+    void el.offsetWidth;
+    el.classList.add("scorePulse");
+  }
+
+  // ===== SOLO GAME =====
   class SoloGame {
     constructor(){
       this.canvas = document.getElementById("canvasSolo");
@@ -694,6 +794,7 @@ PC:
       this.modalTitle = document.getElementById("soloModalTitle");
       this.modalText = document.getElementById("soloModalText");
       this.scoreEl = document.getElementById("soloScore");
+      this.scorePill = document.getElementById("soloScorePill");
       this.livesEl = document.getElementById("soloLives");
       this.stageEl = document.getElementById("soloStageLabel");
       this.btnPause = document.getElementById("soloBtnPause");
@@ -708,6 +809,7 @@ PC:
       this.state = "READY";
       this.lastT = performance.now();
       this.particles = [];
+      this.floatTexts = [];
       this.stars = [];
       this.shake = 0;
 
@@ -715,6 +817,7 @@ PC:
 
       this.stage = 1;
       this.score = 0;
+      this.bestThisRun = 0;
       this.lives = DIFF[difficulty].lives;
 
       this.court = null;
@@ -864,7 +967,7 @@ PC:
     togglePause(){
       if(this.state==="RUNNING"){
         this.state="PAUSED";
-        this.showOverlay("一時停止","Space / P で再開");
+        this.showOverlay("一時停止","Space / P で再開", true);
         beep(280,0.06,"sine",0.05);
       }else if(this.state==="PAUSED"){
         this.state="RUNNING";
@@ -879,6 +982,7 @@ PC:
         this.score=0;
         this.lives=DIFF[difficulty].lives;
       }
+      this.floatTexts.length=0;
       this.bricks=[];
       this.ball=null;
       this.paddle=null;
@@ -905,6 +1009,18 @@ PC:
     }
     shakeScreen(intensity=6){ this.shake=Math.max(this.shake,intensity); }
 
+    addScore(amount, x, y, hue){
+      this.score += amount;
+      pulse(this.scorePill);
+      addFloatText(this.floatTexts, x, y, `+${amount}`, hue);
+      this.syncHud();
+    }
+
+    finishRun(){
+      // save to ranking
+      addRankEntry({ mode:"SOLO", diff:difficulty, score:this.score|0, ts: Date.now() });
+    }
+
     update(dt){
       this.shake = Math.max(0, this.shake - dt*18);
 
@@ -916,6 +1032,14 @@ PC:
         p.vy *= (1 - dt*2.5);
         p.vy += 420*dt;
         if(p.t>=p.life) this.particles.splice(i,1);
+      }
+
+      for(let i=this.floatTexts.length-1;i>=0;i--){
+        const t=this.floatTexts[i];
+        t.t += dt;
+        t.y += t.vy*dt;
+        t.vy -= 20*dt;
+        if(t.t>=t.life) this.floatTexts.splice(i,1);
       }
 
       const speed=520;
@@ -962,11 +1086,12 @@ PC:
 
           br.hp -= 1; br.pop = 1;
           const gained = (br.hp<=0) ? 120 : 40;
-          this.score += gained;
 
           this.spawnParticles(b.x,b.y,br.hue, br.hp<=0?18:10, br.hp<=0?1.05:0.8);
           this.shakeScreen(br.hp<=0?6:3);
           beep(br.hp<=0?760:520, 0.05, br.hp<=0?"square":"triangle", 0.06);
+
+          this.addScore(gained, b.x, b.y, br.hue);
 
           if(br.hp<=0) this.bricks.splice(i,1);
           break;
@@ -982,7 +1107,8 @@ PC:
         if(this.lives<=0){
           this.state="OVER";
           this.ball.stuck=true;
-          this.showOverlay("ゲームオーバー", `スコア: ${this.score} / STAGE: ${this.stage}`, true);
+          this.finishRun();
+          this.showOverlay("ゲームオーバー", `スコア: ${this.score} / STAGE: ${this.stage}\n（ランキングに保存しました）`, true);
           return;
         }
         const sp=this.stageSpeed();
@@ -1006,8 +1132,6 @@ PC:
         beep(880,0.10,"triangle",0.09);
         this.showOverlay("ステージクリア！", `次は STAGE ${this.stage}（Spaceで開始）`, true);
       }
-
-      this.syncHud();
     }
 
     draw(dt){
@@ -1084,6 +1208,17 @@ PC:
       }
       ctx.globalAlpha=1;
 
+      // floating score texts
+      ctx.textAlign="center";
+      ctx.font="1000 14px system-ui";
+      for(const t of this.floatTexts){
+        const a = 1 - (t.t/t.life);
+        ctx.globalAlpha = a;
+        ctx.fillStyle = `hsla(${t.hue}, 95%, 72%, 1)`;
+        ctx.fillText(t.text, t.x, t.y);
+      }
+      ctx.globalAlpha=1;
+
       ctx.restore();
     }
 
@@ -1104,11 +1239,12 @@ PC:
     }
   }
 
-  // ===== VS GAME (LOCAL) =====
+  // ===== VS GAME (LOCAL + ONLINE HOST CORE) =====
   class VSGame {
     constructor(opts={}){
       this.canvas = opts.canvas || document.getElementById("canvasVS");
       this.ctx = this.canvas.getContext("2d", {alpha:false});
+
       this.overlay = opts.overlay || document.getElementById("vsOverlay");
       this.modalTitle = opts.modalTitle || document.getElementById("vsModalTitle");
       this.modalText = opts.modalText || document.getElementById("vsModalText");
@@ -1121,13 +1257,15 @@ PC:
       this.p1LivesEl = opts.p1LivesEl || document.getElementById("p1Lives");
       this.p2LivesEl = opts.p2LivesEl || document.getElementById("p2Lives");
 
-      this.btnPause = opts.btnPause || document.getElementById("vsBtnPause");
-      this.btnRestart = opts.btnRestart || document.getElementById("vsBtnRestart");
-      this.btnMenu = opts.btnMenu || document.getElementById("vsBtnMenu");
-      this.modalStart = opts.modalStart || document.getElementById("vsModalStart");
-      this.modalMenu = opts.modalMenu || document.getElementById("vsModalMenu");
+      this.p1ScorePill = opts.p1ScorePill || document.getElementById("p1ScorePill");
+      this.p2ScorePill = opts.p2ScorePill || document.getElementById("p2ScorePill");
 
-      // local VS touch buttons (①)
+      this.btnPause = opts.btnPause ?? document.getElementById("vsBtnPause");
+      this.btnRestart = opts.btnRestart ?? document.getElementById("vsBtnRestart");
+      this.btnMenu = opts.btnMenu ?? document.getElementById("vsBtnMenu");
+      this.modalStart = opts.modalStart ?? document.getElementById("vsModalStart");
+      this.modalMenu = opts.modalMenu ?? document.getElementById("vsModalMenu");
+
       this.tP1L = document.getElementById("vsP1Left");
       this.tP1R = document.getElementById("vsP1Right");
       this.tP2L = document.getElementById("vsP2Left");
@@ -1137,6 +1275,7 @@ PC:
       this.state = "READY";
       this.lastT = performance.now();
       this.particles=[];
+      this.floatTexts=[];
       this.stars=[];
       this.shake=0;
 
@@ -1152,7 +1291,6 @@ PC:
       this.bricksP1=[];
       this.bricksP2=[];
 
-      // touch holds
       this.hold = { p1L:false,p1R:false,p2L:false,p2R:false };
 
       if(this.btnPause) this.btnPause.onclick = ()=>this.togglePause();
@@ -1276,6 +1414,7 @@ PC:
         this.p1.score = 0;
         this.p2.score = 0;
       }
+      this.floatTexts.length=0;
       this.state="READY";
       this.syncHud();
     }
@@ -1329,6 +1468,19 @@ PC:
     }
     shakeScreen(intensity=6){ this.shake=Math.max(this.shake,intensity); }
 
+    addScore(player, amount, x, y, hue){
+      player.score += amount;
+      pulse(player===this.p1 ? this.p1ScorePill : this.p2ScorePill);
+      addFloatText(this.floatTexts, x, y, `+${amount}`, hue);
+      this.syncHud();
+    }
+
+    finishMatchForRanking(kind){ // kind: VS_LOCAL or VS_ONLINE
+      // ランキングは「合計スコア（P1+P2）」を登録
+      const total = (this.p1.score|0) + (this.p2.score|0);
+      addRankEntry({ mode: kind, diff:difficulty, score: total, ts: Date.now() });
+    }
+
     loseRound(loser){
       if(loser==="p1") this.p2Wins++; else this.p1Wins++;
       this.syncHud();
@@ -1337,7 +1489,9 @@ PC:
         this.state="OVER";
         const winner = (this.p1Wins>this.p2Wins) ? "P1" : "P2";
         beep(900,0.10,"triangle",0.09);
-        this.showOverlay(`${winner} 勝利！`, `最終: P1 ${this.p1Wins}-${this.p2Wins} P2`, true);
+        // ranking save
+        this.finishMatchForRanking(this._rankMode || "VS_LOCAL");
+        this.showOverlay(`${winner} 勝利！`, `最終: P1 ${this.p1Wins}-${this.p2Wins} P2\n（ランキングに保存しました）`, true);
         return;
       }
 
@@ -1359,10 +1513,15 @@ PC:
         p.vy += 420*dt;
         if(p.t>=p.life) this.particles.splice(i,1);
       }
+      for(let i=this.floatTexts.length-1;i>=0;i--){
+        const t=this.floatTexts[i];
+        t.t += dt;
+        t.y += t.vy*dt;
+        t.vy -= 20*dt;
+        if(t.t>=t.life) this.floatTexts.splice(i,1);
+      }
 
       const speed=520;
-
-      // local VS: keyboard + ① touch buttons
       const moveP1 = ((input.right?1:0)-(input.left?1:0)) + ((this.hold.p1R?1:0)-(this.hold.p1L?1:0));
       const moveP2 = ((input.d?1:0)-(input.a?1:0)) + ((this.hold.p2R?1:0)-(this.hold.p2L?1:0));
 
@@ -1430,11 +1589,12 @@ PC:
 
           br.hp -= 1; br.pop=1;
           const gained=(br.hp<=0)?120:40;
-          player.score += gained;
 
           this.spawnParticles(b.x,b.y,br.hue, br.hp<=0?18:10, br.hp<=0?1.05:0.8);
           this.shakeScreen(br.hp<=0?6:3);
           beep(br.hp<=0?760:520, 0.05, br.hp<=0?"square":"triangle", 0.06);
+
+          this.addScore(player, gained, b.x, b.y, br.hue);
 
           if(br.hp<=0) bricks.splice(i,1);
           break;
@@ -1468,7 +1628,7 @@ PC:
       if(bricks.length===0){
         const rebuilt=this.buildBricks(c);
         if(player===this.p1) this.bricksP1=rebuilt; else this.bricksP2=rebuilt;
-        player.score += 300;
+        this.addScore(player, 300, c.x+c.w/2, c.y+c.h/2, 150);
         this.spawnParticles(c.x+c.w/2, c.y+c.h/2, 150, 26, 1.2);
         beep(880,0.08,"triangle",0.08);
       }
@@ -1563,13 +1723,24 @@ PC:
       ctx.fillStyle="rgba(234,240,255,.20)";
       ctx.font="900 12px system-ui";
       ctx.textAlign="center";
-      ctx.fillText("VS", w/2, gapY+4);
+      ctx.fillText(this._rankMode==="VS_ONLINE" ? "ONLINE VS" : "VS", w/2, gapY+4);
 
       for(const prt of this.particles){
         const a=1-(prt.t/prt.life);
         ctx.globalAlpha=a;
         ctx.fillStyle=`hsla(${prt.hue}, 90%, 65%, 1)`;
         ctx.beginPath(); ctx.arc(prt.x,prt.y,prt.r,0,Math.PI*2); ctx.fill();
+      }
+      ctx.globalAlpha=1;
+
+      // floating score texts
+      ctx.textAlign="center";
+      ctx.font="1000 14px system-ui";
+      for(const t of this.floatTexts){
+        const a = 1 - (t.t/t.life);
+        ctx.globalAlpha = a;
+        ctx.fillStyle = `hsla(${t.hue}, 95%, 72%, 1)`;
+        ctx.fillText(t.text, t.x, t.y);
       }
       ctx.globalAlpha=1;
 
@@ -1592,17 +1763,14 @@ PC:
       this.loop();
     }
 
-    // ===== snapshot for online host =====
+    // ===== online helpers =====
     getSnapshot(){
       return {
-        // match
         round:this.round, winNeed:this.winNeed, p1Wins:this.p1Wins, p2Wins:this.p2Wins,
         difficulty,
         state:this.state,
-        // p1/p2 stats
         p1:{score:this.p1.score, lives:this.p1.lives},
         p2:{score:this.p2.score, lives:this.p2.lives},
-        // geometry
         vp:this.viewport,
         p1court:this.p1.court, p2court:this.p2.court,
         p1p:{x:this.p1.paddle.x,y:this.p1.paddle.y,w:this.p1.paddle.w,h:this.p1.paddle.h},
@@ -1613,7 +1781,6 @@ PC:
         bricksP2:this.bricksP2,
       };
     }
-
     applyRemotePaddleX(player, x){
       if(player==="p2" && this.p2?.paddle){
         this.p2.paddle.x = x;
@@ -1630,7 +1797,34 @@ PC:
     }
   }
 
-  // ===== ONLINE GAME WRAPPER =====
+  // ===== Online (URL share signaling) =====
+  function b64enc(str){
+    return btoa(unescape(encodeURIComponent(str)));
+  }
+  function b64dec(b64){
+    return decodeURIComponent(escape(atob(b64)));
+  }
+  function encodeSDP(desc){
+    // compress-ish: JSON -> base64
+    return b64enc(JSON.stringify(desc));
+  }
+  function decodeSDP(code){
+    return JSON.parse(b64dec(code));
+  }
+
+  function buildUrlWithHash(params){
+    const base = location.origin + location.pathname;
+    const hash = new URLSearchParams(params).toString();
+    return base + "#" + hash;
+  }
+  function parseHash(){
+    if(!location.hash || location.hash.length<2) return {};
+    const sp = new URLSearchParams(location.hash.slice(1));
+    const obj = {};
+    for(const [k,v] of sp.entries()) obj[k]=v;
+    return obj;
+  }
+
   class OnlineGame {
     constructor(){
       this.canvas = document.getElementById("canvasOnline");
@@ -1643,10 +1837,6 @@ PC:
 
       this.onBtnHost = document.getElementById("onBtnHost");
       this.onBtnJoin = document.getElementById("onBtnJoin");
-      this.onBtnMakeCode = document.getElementById("onBtnMakeCode");
-      this.onBtnCopyOut = document.getElementById("onBtnCopyOut");
-      this.onCodeIn = document.getElementById("onCodeIn");
-      this.onCodeOut = document.getElementById("onCodeOut");
 
       this.btnMenu = document.getElementById("onBtnMenu");
       this.btnPause = document.getElementById("onBtnPause");
@@ -1660,35 +1850,40 @@ PC:
         p1Lives: document.getElementById("onP1Lives"),
         p2Lives: document.getElementById("onP2Lives"),
         round: document.getElementById("onRound"),
+        p1Pill: document.getElementById("onP1ScorePill"),
+        p2Pill: document.getElementById("onP2ScorePill"),
       };
 
       this.touchHint = document.getElementById("onTouchHint");
-      this.touchBar = document.getElementById("onTouchBar");
       this.tLeft = document.getElementById("onLeft");
       this.tRight = document.getElementById("onRight");
+
+      this.linkBox = document.getElementById("onLinkBox");
+      this.btnMakeInvite = document.getElementById("onBtnMakeInvite");
+      this.btnMakeJoin = document.getElementById("onBtnMakeJoin");
+      this.btnShareLink = document.getElementById("onBtnShareLink");
+      this.btnCopyLink = document.getElementById("onBtnCopyLink");
 
       this.viewport = { w: 800, h: 600, dpr: 1 };
       this.stars=[];
       this.lastT = performance.now();
 
-      this.role = null; // "host" or "join"
+      this.role = null; // host/join
       this.pc = null;
       this.dc = null;
+      this.connected=false;
 
-      this.connected = false;
-
-      // host uses VSGame simulation
+      // host game core
       this.hostGame = null;
-
-      // join renders snapshots
+      // join snapshot
       this.snapshot = null;
 
       this.pointer = { down:false, x:0, y:0 };
       this.holdL=false; this.holdR=false;
 
       this.btnMenu.onclick = ()=>goMenu();
-      this.btnPause.onclick = ()=>this.sendCmd({t:"cmd", cmd:"togglePause"});
-      this.btnRestart.onclick = ()=>this.sendCmd({t:"cmd", cmd:"restart"});
+      this.btnPause.onclick = ()=>this.sendCmd("togglePause");
+      this.btnRestart.onclick = ()=>this.sendCmd("restart");
 
       const bindHold=(el, which)=>{
         el.addEventListener("pointerdown",(e)=>{e.preventDefault(); if(which==="L")this.holdL=true; else this.holdR=true; el.setPointerCapture?.(e.pointerId);},{passive:false});
@@ -1714,10 +1909,29 @@ PC:
 
       this.onBtnHost.onclick = ()=>this.setRole("host");
       this.onBtnJoin.onclick = ()=>this.setRole("join");
-      this.onBtnMakeCode.onclick = ()=>this.makeCode();
-      this.onBtnCopyOut.onclick = async ()=>{
-        try{ await navigator.clipboard.writeText(this.onCodeOut.value); beep(760,0.05,"triangle",0.06); }
+
+      this.btnMakeInvite.onclick = ()=>this.makeInviteLink();
+      this.btnMakeJoin.onclick = ()=>this.makeJoinLink();
+
+      this.btnCopyLink.onclick = async ()=>{
+        const txt = this.linkBox.value.trim();
+        if(!txt){ alert("リンクがありません"); return; }
+        try{ await navigator.clipboard.writeText(txt); beep(760,0.05,"triangle",0.06); }
         catch(e){ alert("コピーできませんでした。手動で選択してコピーしてください。"); }
+      };
+      this.btnShareLink.onclick = async ()=>{
+        const txt = this.linkBox.value.trim();
+        if(!txt){ alert("リンクがありません"); return; }
+        if(navigator.share){
+          try{
+            await navigator.share({ title:"ブロック崩し オンライン対戦", text:"このリンクを開いて参加してね", url: txt });
+            beep(820,0.06,"triangle",0.06);
+          }catch(e){}
+        }else{
+          // fallback: copy
+          try{ await navigator.clipboard.writeText(txt); alert("共有が無いのでコピーしました"); }
+          catch(e){ alert("共有もコピーもできませんでした"); }
+        }
       };
 
       window.addEventListener("resize", ()=>this.resize());
@@ -1762,30 +1976,22 @@ PC:
     setRole(role){
       this.role = role;
       this.onRoleLabel.textContent = role.toUpperCase();
-      this.onCodeIn.value = "";
-      this.onCodeOut.value = "";
+      this.linkBox.value = "";
       if(role==="host"){
-        this.overlayOn("Host（親）", "「コード生成」でOfferを作って相手へ送ってください。相手のAnswerを貼ってもう一度「コード生成」。");
+        this.overlayOn("Host（親）", "「招待リンク作成」→相手に送る。相手の参加リンクを開くと接続します。");
       }else{
-        this.overlayOn("Join（子）", "Hostから来たOfferを貼り付けて「コード生成」。出たAnswerをHostへ返してください。");
+        this.overlayOn("Join（子）", "Hostの招待リンクを開いたら「参加リンク作成」→Hostへ送る。");
       }
       beep(620,0.05,"triangle",0.06);
     }
 
     createPC(){
-      const pc = new RTCPeerConnection({
+      return new RTCPeerConnection({
         iceServers: [
           { urls: "stun:stun.l.google.com:19302" },
           { urls: "stun:stun1.l.google.com:19302" },
         ]
       });
-      pc.oniceconnectionstatechange = ()=>{
-        // console.log("ice:", pc.iceConnectionState);
-      };
-      pc.onconnectionstatechange = ()=>{
-        // console.log("conn:", pc.connectionState);
-      };
-      return pc;
     }
 
     attachDataChannel(dc){
@@ -1794,23 +2000,26 @@ PC:
         this.connected=true;
         beep(880,0.08,"triangle",0.08);
         this.overlayOff();
+
         if(this.role==="host"){
-          // start host simulation
+          // host simulate
           this.hostGame = new VSGame({
             canvas: this.canvas,
-            ctx: this.ctx,
-            overlay: this.onOverlay, // not used
-            modalTitle: this.onModalTitle,
-            modalText: this.onModalText,
-            roundEl: document.getElementById("onRound"),
+            overlay: null,
+            modalTitle: null,
+            modalText: null,
+            roundEl: this.hud.round,
             p1WinsEl: this.hud.p1Wins,
             p2WinsEl: this.hud.p2Wins,
             p1ScoreEl: this.hud.p1Score,
             p2ScoreEl: this.hud.p2Score,
             p1LivesEl: this.hud.p1Lives,
             p2LivesEl: this.hud.p2Lives,
+            p1ScorePill: this.hud.p1Pill,
+            p2ScorePill: this.hud.p2Pill,
             btnPause: null, btnRestart: null, btnMenu: null, modalStart: null, modalMenu: null
           });
+          this.hostGame._rankMode = "VS_ONLINE";
           this.hostGame.start();
         }
       };
@@ -1826,97 +2035,28 @@ PC:
       };
     }
 
-    async makeCode(){
-      if(!this.role){ alert("HostかJoinを選んでください"); return; }
-
-      // Host: if no pc -> create offer, else treat input as answer and setRemoteDescription
-      // Join: input offer -> create answer
-
-      if(this.role==="host"){
-        if(!this.pc){
-          this.pc = this.createPC();
-          const dc = this.pc.createDataChannel("game");
-          this.attachDataChannel(dc);
-
-          this.pc.onicecandidate = (e)=>{
-            // after gathering complete, output offer
-            if(!e.candidate){
-              const code = encodeSDP(this.pc.localDescription);
-              this.onCodeOut.value = code;
-            }
-          };
-
-          const offer = await this.pc.createOffer();
-          await this.pc.setLocalDescription(offer);
-          this.overlayOn("Offer生成中", "少し待つと下の出力欄にコードが出ます（出たら相手へ送る）。");
-          return;
-        }
-
-        // host has pc => expects answer in input
-        const inCode = this.onCodeIn.value.trim();
-        if(!inCode){ alert("相手のAnswerコードを貼ってください"); return; }
-        let ans;
-        try{ ans = decodeSDP(inCode); }catch(e){ alert("コードが壊れています"); return; }
-
-        await this.pc.setRemoteDescription(ans);
-        this.overlayOn("接続中", "接続が完了すると自動で画面が閉じます。");
-        return;
-      }
-
-      if(this.role==="join"){
-        const inCode = this.onCodeIn.value.trim();
-        if(!inCode){ alert("HostのOfferコードを貼ってください"); return; }
-        let offer;
-        try{ offer = decodeSDP(inCode); }catch(e){ alert("コードが壊れています"); return; }
-
-        if(!this.pc){
-          this.pc = this.createPC();
-          this.pc.ondatachannel = (ev)=>this.attachDataChannel(ev.channel);
-
-          this.pc.onicecandidate = (e)=>{
-            if(!e.candidate){
-              const code = encodeSDP(this.pc.localDescription);
-              this.onCodeOut.value = code;
-            }
-          };
-        }
-
-        await this.pc.setRemoteDescription(offer);
-        const answer = await this.pc.createAnswer();
-        await this.pc.setLocalDescription(answer);
-        this.overlayOn("Answer生成中", "少し待つと下の出力欄にコードが出ます（Hostへ返す）。");
-        return;
-      }
-    }
-
     send(msg){
       if(this.dc && this.dc.readyState==="open"){
         this.dc.send(JSON.stringify(msg));
       }
     }
-    sendCmd(msg){
+
+    sendCmd(cmd){
       if(!this.connected) return;
-      // host can also trigger locally
       if(this.role==="host"){
-        if(msg.cmd==="togglePause") this.hostGame?.togglePause();
-        if(msg.cmd==="restart") this.hostGame?.restartMatch();
-        if(msg.cmd==="start") this.hostGame?.startOrServe();
+        if(cmd==="togglePause") this.hostGame?.togglePause();
+        if(cmd==="restart") this.hostGame?.restartMatch();
       }else{
-        this.send(msg);
+        this.send({t:"cmd", cmd});
       }
     }
 
     handleMsg(msg){
-      // join receives state snapshots + commands; host receives inputs
       if(this.role==="host"){
         if(msg.t==="input"){
-          if(this.hostGame){
-            // join controls P2 (top)
-            if(typeof msg.p2x==="number") this.hostGame.applyRemotePaddleX("p2", msg.p2x);
-            if(msg.cmd==="start") this.hostGame.startOrServe();
-            if(msg.cmd==="togglePause") this.hostGame.togglePause();
-            if(msg.cmd==="restart") this.hostGame.restartMatch();
-          }
+          if(typeof msg.p2x==="number") this.hostGame?.applyRemotePaddleX("p2", msg.p2x);
+          if(msg.cmd==="togglePause") this.hostGame?.togglePause();
+          if(msg.cmd==="restart") this.hostGame?.restartMatch();
         }
         return;
       }
@@ -1924,7 +2064,6 @@ PC:
       if(this.role==="join"){
         if(msg.t==="snap"){
           this.snapshot = msg.snap;
-          // sync HUD
           const s=this.snapshot;
           this.hud.p1Wins.textContent = s.p1Wins;
           this.hud.p2Wins.textContent = s.p2Wins;
@@ -1933,86 +2072,154 @@ PC:
           this.hud.p1Lives.textContent = s.p1.lives|0;
           this.hud.p2Lives.textContent = s.p2.lives|0;
           this.hud.round.textContent = s.round;
+
+          // pulse for join HUD when score changes (light)
+          if(this._lastP1Score!==s.p1.score){ pulse(this.hud.p1Pill); this._lastP1Score=s.p1.score; }
+          if(this._lastP2Score!==s.p2.score){ pulse(this.hud.p2Pill); this._lastP2Score=s.p2.score; }
         }
+      }
+    }
+
+    // ===== URL signaling flow =====
+    async makeInviteLink(){
+      if(!this.role || this.role!=="host"){
+        alert("Host（親）を選んでください");
+        return;
+      }
+      if(!this.pc){
+        this.pc = this.createPC();
+        const dc = this.pc.createDataChannel("game");
+        this.attachDataChannel(dc);
+      }
+
+      // create offer
+      const offer = await this.pc.createOffer();
+      await this.pc.setLocalDescription(offer);
+
+      // wait ICE gathering complete
+      await new Promise((resolve)=>{
+        if(this.pc.iceGatheringState==="complete") return resolve();
+        const onState=()=>{
+          if(this.pc.iceGatheringState==="complete"){
+            this.pc.removeEventListener("icegatheringstatechange", onState);
+            resolve();
+          }
+        };
+        this.pc.addEventListener("icegatheringstatechange", onState);
+      });
+
+      const code = encodeSDP(this.pc.localDescription);
+      const url = buildUrlWithHash({ role:"join", offer: code, diff: String(difficulty) });
+      this.linkBox.value = url;
+      beep(760,0.06,"triangle",0.06);
+    }
+
+    async makeJoinLink(){
+      // Join side: requires offer from URL hash
+      if(!this.role || this.role!=="join"){
+        alert("Join（子）を選んでください");
+        return;
+      }
+      const h = parseHash();
+      const offerCode = h.offer;
+      if(!offerCode){
+        alert("招待リンク（offer）が見つかりません。Hostの招待リンクを開いてください。");
+        return;
+      }
+
+      if(!this.pc){
+        this.pc = this.createPC();
+        this.pc.ondatachannel = (ev)=>this.attachDataChannel(ev.channel);
+      }
+
+      const offer = decodeSDP(offerCode);
+      await this.pc.setRemoteDescription(offer);
+
+      const answer = await this.pc.createAnswer();
+      await this.pc.setLocalDescription(answer);
+
+      await new Promise((resolve)=>{
+        if(this.pc.iceGatheringState==="complete") return resolve();
+        const onState=()=>{
+          if(this.pc.iceGatheringState==="complete"){
+            this.pc.removeEventListener("icegatheringstatechange", onState);
+            resolve();
+          }
+        };
+        this.pc.addEventListener("icegatheringstatechange", onState);
+      });
+
+      const ansCode = encodeSDP(this.pc.localDescription);
+      // make link for host to open
+      const url = buildUrlWithHash({ role:"host", answer: ansCode, diff: String(difficulty) });
+      this.linkBox.value = url;
+      beep(760,0.06,"triangle",0.06);
+    }
+
+    async applyAnswerIfPresent(){
+      // Host side: if answer exists in URL, setRemoteDescription and connect
+      if(this.role!=="host" || !this.pc) return;
+      const h = parseHash();
+      if(!h.answer) return;
+      try{
+        const ans = decodeSDP(h.answer);
+        await this.pc.setRemoteDescription(ans);
+        this.overlayOn("接続中", "接続が完了すると自動で閉じます。");
+      }catch(e){
+        alert("参加リンクが壊れています");
+      }
+    }
+
+    // auto-setup from URL hash
+    async autoFromUrlHash(){
+      const h = parseHash();
+      if(!h || (!h.offer && !h.answer && !h.role)) return;
+
+      // apply difficulty from url
+      if(h.diff){
+        const d = parseInt(h.diff,10);
+        if([1,2,3].includes(d)) applyDifficulty(d);
+      }
+
+      if(h.role==="join" && h.offer){
+        this.setRole("join");
+        // Join creates pc now; connection begins after "参加リンク作成" (one button)
+        this.overlayOn("Join（子）", "Hostの招待リンクを受け取りました。『参加リンク作成』を押してHostに返してください。");
+      }else if(h.role==="host" && h.answer){
+        this.setRole("host");
+        this.overlayOn("Host（親）", "参加リンクを受け取りました。接続を開始します。");
+        // host must already have offer/pc. If not, we can't fully auto; guide user.
+        this.overlayOn("Host（親）", "先に『招待リンク作成』を押してOfferを作ってから、参加リンクを開いてください。");
       }
     }
 
     startOrServe(){
-      // online: start command
       if(!this.connected) return;
       if(this.role==="host"){
         this.hostGame?.startOrServe();
       }else{
-        this.send({t:"input", cmd:"start"});
-      }
-    }
-
-    togglePause(){
-      if(!this.connected) return;
-      if(this.role==="host"){
-        this.hostGame?.togglePause();
-      }else{
-        this.send({t:"input", cmd:"togglePause"});
-      }
-    }
-
-    restartMatch(){
-      if(!this.connected) return;
-      if(this.role==="host"){
-        this.hostGame?.restartMatch();
-      }else{
-        this.send({t:"input", cmd:"restart"});
+        this.send({t:"cmd", cmd:"start"});
       }
     }
 
     update(dt){
-      // join sends its paddle x (P2 top). host sends snapshots periodically.
       if(!this.connected) return;
 
-      // local control: on mobile button/drag controls "my paddle"
       const speed=520;
       const move = ((this.holdR?1:0)-(this.holdL?1:0)) + ((input.right?1:0)-(input.left?1:0));
 
-      let myX = null;
-
-      // pointer drag: move my paddle by x
-      if(this.pointer.down){
-        myX = this.pointer.x;
-      }else{
-        // if no pointer, integrate based on speed from last snapshot or assume center
-        // just send direction; but easier: approximate x by accumulating around snapshot paddle
-        if(this.snapshot){
-          if(this.role==="join"){
-            // join controls P2
-            const cur = this.snapshot.p2p?.x ?? (this.viewport.w/2);
-            myX = cur + move * speed * dt;
-          }else{
-            const cur = this.hostGame?.p1?.paddle?.x ?? (this.viewport.w/2);
-            myX = cur + move * speed * dt;
-          }
-        }
-      }
-
       if(this.role==="join"){
-        if(myX!==null){
-          this.send({t:"input", p2x: myX});
+        let myX = null;
+        if(this.pointer.down){
+          myX = this.pointer.x;
+        }else if(this.snapshot){
+          const cur = this.snapshot.p2p?.x ?? (this.viewport.w/2);
+          myX = cur + move * speed * dt;
         }
+        if(myX!==null) this.send({t:"input", p2x: myX});
       }else{
-        // host local control (P1 bottom) via keyboard and touch: apply directly
+        // host sends snapshots
         if(this.hostGame){
-          const p1 = this.hostGame.p1;
-          if(this.pointer.down){
-            const y=this.pointer.y;
-            // allow drag in bottom court controls P1
-            if(y >= p1.court.y && y <= p1.court.y + p1.court.h){
-              this.hostGame.applyRemotePaddleX("p1", this.pointer.x);
-            }
-          }else{
-            // keyboard/touch direction already handled by VSGame in local; but here VSGame is running and reading global input.
-            // Nothing extra needed.
-          }
-
-          // send snapshots ~20Hz
           this._snapAcc = (this._snapAcc||0) + dt;
           if(this._snapAcc >= 0.05){
             this._snapAcc = 0;
@@ -2038,7 +2245,7 @@ PC:
       ctx.globalAlpha=1;
 
       if(this.role==="host"){
-        // hostGame draws on same canvas inside its loop (but to avoid double clear, we do nothing here)
+        // hostGame draws in its own loop; do nothing to avoid flicker
         return;
       }
 
@@ -2046,13 +2253,12 @@ PC:
       const s = this.snapshot;
       if(!s){
         ctx.fillStyle="rgba(234,240,255,.65)";
-        ctx.font="900 14px system-ui";
+        ctx.font="900 13px system-ui";
         ctx.textAlign="center";
         ctx.fillText("接続待ち…（Hostが開始すると状態が届きます）", w/2, h/2);
         return;
       }
 
-      // draw courts
       const drawCourt=(court,label)=>{
         ctx.strokeStyle="rgba(255,255,255,.16)";
         ctx.lineWidth=1;
@@ -2115,12 +2321,6 @@ PC:
       ctx.font="900 12px system-ui";
       ctx.textAlign="center";
       ctx.fillText("ONLINE VS", w/2, gapY+4);
-
-      // role label
-      ctx.fillStyle="rgba(234,240,255,.55)";
-      ctx.font="900 12px system-ui";
-      ctx.textAlign="right";
-      ctx.fillText(`ROLE: JOIN`, w-16, h-16);
     }
 
     loop(){
@@ -2135,16 +2335,16 @@ PC:
       requestAnimationFrame(()=>this.loop());
     }
 
-    start(){
+    async start(){
       this._stopped=false;
-      // reset UI + overlay
       this.onRoleLabel.textContent = "-";
       this.overlayOn("オンライン接続", "Host（親）か Join（子）を選んでください。");
+      await this.autoFromUrlHash();
       this.loop();
     }
   }
 
-  // ===== Active game switcher =====
+  // ===== Active game =====
   let activeGame = null;
 
   btnStartSolo.onclick = () => {
@@ -2158,6 +2358,7 @@ PC:
     applyDifficulty(parseInt(difficultySel.value,10));
     showScreen("vs");
     activeGame = new VSGame();
+    activeGame._rankMode = "VS_LOCAL";
     activeGame.start();
   };
 
@@ -2168,13 +2369,14 @@ PC:
     activeGame.start();
   };
 
-  // menus
+  // menu buttons
   document.getElementById("soloBtnMenu").onclick = ()=>goMenu();
   document.getElementById("vsBtnMenu").onclick = ()=>goMenu();
   document.getElementById("onBtnMenu").onclick = ()=>goMenu();
 
-  // update labels
+  // initial
   applyDifficulty(1);
+  renderRank();
 })();
 </script>
 </body>
