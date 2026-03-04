@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>ブロック崩し：ステージ / オンライン対戦 / ランキング</title>
+  <title>ブロック崩し：ステージ解放 / 合言葉オンライン / ランキング</title>
   <style>
     :root{
       --bg0:#070A12;
@@ -28,9 +28,14 @@
         linear-gradient(180deg,var(--bg1),var(--bg0) 55%, #05060A);
       color:var(--text);
       overflow:hidden;
-      user-select:none;
-    }
 
+      /* 長押しでコピー/選択が出にくいように */
+      user-select:none;
+      -webkit-user-select:none;
+      -webkit-touch-callout:none;
+      touch-action: manipulation;
+    }
+    a{color:inherit}
     .screen{position:fixed; inset:0; display:none; padding: clamp(10px, 2.2vw, 18px); gap: 12px;}
     .screen.active{display:flex; flex-direction:column;}
     .glass{
@@ -40,7 +45,6 @@
       box-shadow: var(--shadow);
       backdrop-filter: blur(10px);
     }
-
     .header{
       display:flex; align-items:center; justify-content:space-between; gap:10px;
       padding: 12px 14px;
@@ -75,7 +79,6 @@
     }
     .pill.scorePulse{animation: scorePulse .18s ease;}
     @keyframes scorePulse{from{transform:scale(1.06)} to{transform:scale(1)}}
-
     .dot{width:8px;height:8px;border-radius:99px;background:var(--accent); box-shadow: 0 0 18px rgba(103,232,249,.6)}
     .btn{
       appearance:none; border:none; cursor:pointer;
@@ -87,6 +90,7 @@
       border: 1px solid rgba(103,232,249,.35);
       box-shadow: 0 10px 30px rgba(0,0,0,.25);
       transition: transform .12s ease, filter .12s ease;
+      touch-action: manipulation;
     }
     .btn:hover{transform: translateY(-1px); filter:brightness(1.05)}
     .btn:active{transform: translateY(0px); filter:brightness(.98)}
@@ -111,7 +115,6 @@
       min-height:0;
     }
     @media (max-width: 900px){ .menuBody{grid-template-columns: 1fr;} }
-
     .card{
       padding: 14px;
       border: 1px solid var(--line);
@@ -127,7 +130,7 @@
       font-weight: 1000; font-size: 11px; margin: 0 2px;
     }
     .selectRow{display:flex; justify-content:space-between; gap:10px; align-items:center; flex-wrap:wrap;}
-    select{
+    select, input[type="text"]{
       appearance:none;
       padding: 10px 12px;
       border-radius: 12px;
@@ -138,7 +141,7 @@
       min-width: 170px;
       outline:none;
     }
-
+    input[type="text"]{min-width: 220px;}
     .twoCols{display:grid; grid-template-columns: 1fr 1fr; gap:10px;}
     @media (max-width: 520px){ .twoCols{grid-template-columns: 1fr;} }
 
@@ -159,6 +162,7 @@
       text-align:center;
       cursor:pointer;
       transition: transform .12s ease, filter .12s ease;
+      touch-action: manipulation;
     }
     .stageBtn:hover{transform: translateY(-1px); filter:brightness(1.08)}
     .stageBtn:active{transform: translateY(0px); filter:brightness(.98)}
@@ -265,23 +269,6 @@
     .modal .actions .btn{flex:1}
     .modal .sub{margin-top:10px; color:rgba(234,240,255,.78); font-weight:800; font-size:12px; line-height:1.55}
 
-    .linkBox{
-      width:100%;
-      border-radius: 14px;
-      border:1px solid var(--line);
-      background: rgba(0,0,0,.24);
-      padding: 10px;
-      font-weight: 900;
-      font-size: 12px;
-      color: rgba(234,240,255,.92);
-      overflow:hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      user-select:none;
-      -webkit-user-select:none;
-      touch-action: manipulation;
-    }
-
     .toast{
       position: fixed;
       left: 50%;
@@ -358,7 +345,6 @@
   </style>
 </head>
 <body>
-
 <div class="toast" id="toast"></div>
 
 <!-- ===== MENU ===== -->
@@ -368,7 +354,7 @@
       <div class="logo"></div>
       <div>
         <h1>ブロック崩し <span style="opacity:.8">Stage / Online</span></h1>
-        <small>ステージ解放 / ランキング / スマホPC対応</small>
+        <small>ステージ解放 / ランキング / 合言葉オンライン</small>
       </div>
     </div>
     <div class="headerRight">
@@ -405,9 +391,8 @@
       <div class="stageGrid" id="stageGrid"></div>
 
       <div class="twoCols" style="margin-top:10px">
-        <!-- ✅ 進行リセット削除 -->
         <button class="btn secondary" id="btnResetRank">ランキング消去</button>
-        <button class="btn secondary" id="btnDummy" style="opacity:.7; cursor:default"> </button>
+        <button class="btn secondary" id="btnResetStage">ステージ進行を初期化</button>
       </div>
     </div>
 
@@ -423,20 +408,19 @@
       <div class="mobileOnly hint">
         <b style="color:var(--accent)">スマホ</b><br/>
         ・画面ドラッグ or 下の <b style="color:var(--accent2)">◀▶</b><br/>
-        ・オンラインも同じ（自分のバーだけ操作）
+        ・開始：タップ（or 開始ボタン）
       </div>
 
       <h3 class="title" style="margin-top:14px">ランキング（TOP10）</h3>
       <div class="hint">この端末に保存されます（GitHub PagesでもOK）。</div>
-
       <div class="rankList" id="rankList">
         <div class="rankHead"><span>順位 / モード</span><span>スコア</span></div>
       </div>
 
       <div class="hint" style="margin-top:12px; opacity:.9">
-        <b style="color:var(--accent2)">オンラインの注意</b><br/>
-        ・GitHub Pages等の <b>HTTPS</b> で開く必要があります。<br/>
-        ・学校/会社Wi-Fi だと接続がブロックされる場合があります。
+        <b style="color:var(--accent2)">オンライン（合言葉）</b><br/>
+        ・Host と Join が同じ合言葉を入れるだけ。<br/>
+        ・GitHub Pagesなど <b>HTTPS</b> で開く必要があります。
       </div>
     </div>
   </div>
@@ -481,7 +465,7 @@
           <button class="btn" id="stageModalStart">開始</button>
           <button class="btn secondary" id="stageModalMenu">メニューへ</button>
         </div>
-        <div class="sub">※ ブロックの形・配置はステージごとに変わります。</div>
+        <div class="sub">※ ブロックの形・配置はステージごとに変化します。</div>
       </div>
     </div>
 
@@ -500,7 +484,7 @@
       <div class="logo"></div>
       <div>
         <h1>オンライン対戦</h1>
-        <small>ボタンだけで共有（コピペ不要）</small>
+        <small>合言葉だけで接続（リンク不要）</small>
       </div>
     </div>
     <div class="headerRight">
@@ -527,8 +511,8 @@
 
     <div class="overlay on" id="onOverlay">
       <div class="modal">
-        <h2 id="onModalTitle">オンライン接続</h2>
-        <p id="onModalText">Host（親）か Join（子）を選ぶ → ボタンで共有するだけ</p>
+        <h2 id="onModalTitle">合言葉オンライン</h2>
+        <p id="onModalText">Host（親）/ Join（子）を選択 → 同じ合言葉を入れるだけ</p>
 
         <div class="actions">
           <button class="btn ok" id="onBtnHost">Host（親）</button>
@@ -536,32 +520,18 @@
         </div>
 
         <div class="sub" style="margin-top:10px">
-          <div style="font-weight:1000;margin-bottom:6px">① Host（親）</div>
-          <div class="actions">
-            <button class="btn secondary" id="onBtnInviteShare">招待リンクを共有（Host）</button>
-            <button class="btn secondary" id="onBtnInviteCopy">招待リンクをコピー（PC向け）</button>
+          <div style="font-weight:1000;margin-bottom:6px">合言葉</div>
+          <input id="roomInput" type="text" maxlength="20" placeholder="例：あいう" />
+          <div class="actions" style="margin-top:10px">
+            <button class="btn" id="onBtnConnect">接続する</button>
+            <button class="btn secondary" id="onBtnStartServe">開始（接続後）</button>
           </div>
-
-          <div style="height:10px"></div>
-
-          <div style="font-weight:1000;margin-bottom:6px">② Join（子）</div>
-          <div class="hint" style="margin-bottom:6px">
-            Hostの招待リンクを開いたら、下のボタンを押すだけ（参加リンクを作って共有します）
+          <div class="hint" style="margin-top:10px; opacity:.9">
+            ※ Host が先に「接続する」→ Join も同じ合言葉で「接続する」。<br/>
+            ※ 接続できたら自動でゲーム画面になります。
           </div>
-          <div class="actions">
-            <button class="btn secondary" id="onBtnJoinShare">参加リンクを共有（Join）</button>
-            <button class="btn secondary" id="onBtnJoinCopy">参加リンクをコピー（PC向け）</button>
-          </div>
-
-          <div style="height:10px"></div>
-
-          <div class="hint" style="opacity:.95">
-            ③ Hostは Joinから来た「参加リンク」を開くだけで接続します。
-          </div>
-
-          <div style="margin-top:10px">
-            <div class="hint" style="font-weight:1000;margin-bottom:6px">今のリンク（表示だけ）</div>
-            <div class="linkBox" id="onLinkView">（まだありません）</div>
+          <div class="hint" style="margin-top:10px; opacity:.85">
+            サーバ: <span id="sigLabel"></span>
           </div>
         </div>
       </div>
@@ -577,6 +547,13 @@
 
 <script>
 (() => {
+  // ========= 設定（あなたの Worker URL） =========
+  const SIGNAL_BASE = "https://dry-tooth-2870.sakuharu107.workers.dev";
+  document.getElementById("sigLabel").textContent = SIGNAL_BASE;
+
+  // 右クリック長押しメニュー抑制（完全には消せないけどかなり減る）
+  window.addEventListener("contextmenu", (e)=>e.preventDefault(), {passive:false});
+
   const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
   const rand = (a,b)=>a+Math.random()*(b-a);
 
@@ -586,7 +563,7 @@
     toastEl.textContent = msg;
     toastEl.classList.add("on");
     clearTimeout(toastTimer);
-    toastTimer=setTimeout(()=>toastEl.classList.remove("on"), 1100);
+    toastTimer=setTimeout(()=>toastEl.classList.remove("on"), 1200);
   }
 
   let SFX_ON = true;
@@ -616,7 +593,7 @@
   };
 
   const STAGE_COUNT = 15;
-  const PROG_KEY = "breakout_stage_progress_v1";
+  const PROG_KEY = "breakout_stage_progress_v2";
   function loadProgress(){
     try{
       const obj = JSON.parse(localStorage.getItem(PROG_KEY) || "{}");
@@ -627,8 +604,12 @@
       return {unlocked:1, best:{}};
     }
   }
-  function saveProgress(p){
-    localStorage.setItem(PROG_KEY, JSON.stringify(p));
+  function saveProgress(p){ localStorage.setItem(PROG_KEY, JSON.stringify(p)); }
+  function resetProgress(){
+    localStorage.removeItem(PROG_KEY);
+    selectedStage = 1;
+    renderStageGrid();
+    toast("ステージ進行を初期化しました");
   }
   function unlockStage(n){
     const p = loadProgress();
@@ -650,13 +631,11 @@
     }
   }
 
-  const RANK_KEY = "breakout_rankings_v3";
+  const RANK_KEY = "breakout_rankings_v4";
   function loadRank(){
     try{ return JSON.parse(localStorage.getItem(RANK_KEY) || "[]"); }catch(e){ return []; }
   }
-  function saveRank(list){
-    localStorage.setItem(RANK_KEY, JSON.stringify(list));
-  }
+  function saveRank(list){ localStorage.setItem(RANK_KEY, JSON.stringify(list)); }
   function addRankEntry(entry){
     const list = loadRank();
     list.push(entry);
@@ -667,6 +646,7 @@
   function clearRank(){
     localStorage.removeItem(RANK_KEY);
     renderRank();
+    toast("ランキングを消去しました");
   }
   function fmtDate(ts){
     const d = new Date(ts);
@@ -699,28 +679,13 @@
   const screenMenu = document.getElementById("screenMenu");
   const screenStage = document.getElementById("screenStage");
   const screenOnline = document.getElementById("screenOnline");
-
-  const difficultySel = document.getElementById("difficulty");
-  const menuDiffLabel = document.getElementById("menuDiffLabel");
-
-  const btnMenuHow  = document.getElementById("btnMenuHow");
-  const btnMenuMute = document.getElementById("btnMenuMute");
-  const btnStartStage = document.getElementById("btnStartStage");
-  const btnStartOnline = document.getElementById("btnStartOnline");
-  const btnResetRank = document.getElementById("btnResetRank");
-
-  const stageGridEl = document.getElementById("stageGrid");
-
   function showScreen(which){
     for(const el of [screenMenu,screenStage,screenOnline]) el.classList.remove("active");
     if(which==="menu") screenMenu.classList.add("active");
     if(which==="stage") screenStage.classList.add("active");
     if(which==="online") screenOnline.classList.add("active");
   }
-
-  function isMobileLike(){
-    return matchMedia("(pointer: coarse)").matches || innerWidth <= 920;
-  }
+  function isMobileLike(){ return matchMedia("(pointer: coarse)").matches || innerWidth <= 920; }
 
   const input = { left:false, right:false };
   window.addEventListener("keydown", (e)=>{
@@ -739,11 +704,20 @@
   function goMenu(){
     activeGame?.stop?.();
     activeGame = null;
-    history.replaceState(null, "", location.pathname + location.search);
     showScreen("menu");
     renderRank();
     renderStageGrid();
   }
+
+  // ===== Menu UI =====
+  const difficultySel = document.getElementById("difficulty");
+  const menuDiffLabel = document.getElementById("menuDiffLabel");
+  const btnMenuHow  = document.getElementById("btnMenuHow");
+  const btnMenuMute = document.getElementById("btnMenuMute");
+  const btnStartStage = document.getElementById("btnStartStage");
+  const btnStartOnline = document.getElementById("btnStartOnline");
+  const btnResetRank = document.getElementById("btnResetRank");
+  const btnResetStage = document.getElementById("btnResetStage");
 
   btnMenuHow.onclick = () => {
     if(isMobileLike()){
@@ -751,7 +725,7 @@
 `スマホ操作
 ・ドラッグでバー移動
 ・下の ◀▶ でも移動可能
-・開始：タップ or Space（キーボードがあれば）
+・開始：タップ or 画面の開始ボタン
 ・一時停止：画面の「一時停止」ボタン
 ・メニュー：画面の「メニュー」ボタン`
       );
@@ -765,18 +739,16 @@
       );
     }
   };
-
   btnMenuMute.onclick = () => {
     SFX_ON = !SFX_ON;
     btnMenuMute.textContent = `SE: ${SFX_ON ? "ON" : "OFF"}`;
     beep(SFX_ON?660:220, 0.07, "square", 0.06);
   };
-
   btnResetRank.onclick = () => {
-    if(confirm("ランキングを消去しますか？（この端末の記録のみ）")){
-      clearRank();
-      beep(220,0.08,"sine",0.06);
-    }
+    if(confirm("ランキングを消去しますか？（この端末のみ）")) clearRank();
+  };
+  btnResetStage.onclick = () => {
+    if(confirm("ステージ進行を初期化しますか？（この端末のみ）")) resetProgress();
   };
 
   let difficulty = 1;
@@ -793,8 +765,9 @@
     beep(620,0.05,"triangle",0.06);
   });
 
+  // ===== Stage Grid =====
+  const stageGridEl = document.getElementById("stageGrid");
   let selectedStage = 1;
-
   function renderStageGrid(){
     const p = loadProgress();
     const unlocked = p.unlocked;
@@ -815,6 +788,7 @@
     }
   }
 
+  // ===== Collision/Draw Helpers =====
   function ballAABB(ball, r, box){
     const cx = clamp(ball.x, box.x, box.x + box.w);
     const cy = clamp(ball.y, box.y, box.y + box.h);
@@ -962,11 +936,9 @@
 
     const rr = 10;
     if(br.shape==="rect"){
-      roundRect(ctx,x,y,bw,bh,rr);
-      ctx.fill();
+      roundRect(ctx,x,y,bw,bh,rr); ctx.fill();
     }else if(br.shape==="capsule"){
-      roundRect(ctx,x,y,bw,bh,999);
-      ctx.fill();
+      roundRect(ctx,x,y,bw,bh,999); ctx.fill();
     }else if(br.shape==="diamond"){
       ctx.beginPath();
       ctx.moveTo(x+bw/2, y);
@@ -976,8 +948,7 @@
       ctx.closePath();
       ctx.fill();
     }else{
-      roundRect(ctx,x,y,bw,bh,rr);
-      ctx.fill();
+      roundRect(ctx,x,y,bw,bh,rr); ctx.fill();
     }
 
     if(br.hp===2){
@@ -1014,10 +985,10 @@
     ctx.globalAlpha=1;
   }
 
+  // ===== Stage Game =====
   class StageGame {
     constructor(stage){
       this.stage = stage;
-
       this.canvas = document.getElementById("canvasStage");
       this.ctx = this.canvas.getContext("2d", {alpha:false});
       this.overlay = document.getElementById("stageOverlay");
@@ -1075,13 +1046,13 @@
         const r=this.canvas.getBoundingClientRect();
         this.pointer.x=e.clientX-r.left; this.pointer.y=e.clientY-r.top;
         if(this.state==="READY"||this.state==="OVER") this.startOrServe();
-      });
+      }, {passive:false});
       this.canvas.addEventListener("pointermove",(e)=>{
         if(!this.pointer.down) return;
         const r=this.canvas.getBoundingClientRect();
         this.pointer.x=e.clientX-r.left; this.pointer.y=e.clientY-r.top;
-      });
-      window.addEventListener("pointerup",()=>{ this.pointer.down=false; });
+      }, {passive:true});
+      window.addEventListener("pointerup",()=>{ this.pointer.down=false; }, {passive:true});
 
       window.addEventListener("resize", ()=>this.resize());
       this.resize();
@@ -1214,7 +1185,7 @@
       if(this.stage < STAGE_COUNT) unlockStage(this.stage+1);
     }
 
-    // ✅ クリアしたら「そのまま次ステージ」へ移行
+    // クリアしたらそのまま次へ
     gotoNextStage(){
       if(this.stage >= STAGE_COUNT){
         this.showOverlay("全ステージクリア！", `おめでとう！\n（ランキングに記録済み）`, true);
@@ -1222,7 +1193,7 @@
         return;
       }
       this.stage += 1;
-      selectedStage = this.stage; // メニューの選択も追従
+      selectedStage = this.stage;
       this.bricks = [];
       this.ball = null;
       this.paddle = null;
@@ -1334,10 +1305,8 @@
       }
 
       if(this.bricks.length===0){
-        // ✅ クリア→即次ステージへ
         this.state="READY";
         this.ball.stuck=true;
-
         this.finishStageClear();
         this.gotoNextStage();
       }
@@ -1430,44 +1399,12 @@
     }
   }
 
-  // ---- Online（前回と同じ：省略せずフル） ----
-  function b64enc(str){ return btoa(unescape(encodeURIComponent(str))); }
-  function b64dec(b64){ return decodeURIComponent(escape(atob(b64))); }
-  function encodeSDP(desc){ return b64enc(JSON.stringify(desc)); }
-  function decodeSDP(code){ return JSON.parse(b64dec(code)); }
-
-  function buildUrlWithHash(params){
-    const base = location.origin + location.pathname;
-    const hash = new URLSearchParams(params).toString();
-    return base + "#" + hash;
-  }
-  function parseHash(){
-    if(!location.hash || location.hash.length<2) return {};
-    const sp = new URLSearchParams(location.hash.slice(1));
-    const obj = {};
-    for(const [k,v] of sp.entries()) obj[k]=v;
-    return obj;
-  }
-  async function copyText(txt){
-    try{
-      await navigator.clipboard.writeText(txt);
-      return true;
-    }catch(e){
-      return false;
-    }
-  }
-  async function shareOrCopy(url, title){
-    if(navigator.share){
-      try{
-        await navigator.share({ title, text:"このリンクを開いて参加してね", url });
-        toast("共有しました");
-        beep(820,0.06,"triangle",0.06);
-        return;
-      }catch(e){}
-    }
-    const ok = await copyText(url);
-    if(ok){ toast("コピーしました"); beep(760,0.06,"triangle",0.06); }
-    else { toast("コピーできません（手動で共有してください）"); }
+  // ===== Online (Passphrase + Worker WebSocket signaling) =====
+  function wsURL(room, role){
+    const u = new URL(SIGNAL_BASE + "/ws");
+    u.searchParams.set("room", room);
+    u.searchParams.set("role", role || "peer");
+    return u.toString().replace(/^http/, "ws");
   }
 
   class OnlineGame {
@@ -1494,24 +1431,24 @@
         p2Pill: document.getElementById("onP2ScorePill"),
       };
 
+      this.roomInput = document.getElementById("roomInput");
+      this.btnConnect = document.getElementById("onBtnConnect");
+      this.btnStartServe = document.getElementById("onBtnStartServe");
+
       this.tLeft = document.getElementById("onLeft");
       this.tRight = document.getElementById("onRight");
 
       this.btnHost = document.getElementById("onBtnHost");
       this.btnJoin = document.getElementById("onBtnJoin");
 
-      this.btnInviteShare = document.getElementById("onBtnInviteShare");
-      this.btnInviteCopy  = document.getElementById("onBtnInviteCopy");
-      this.btnJoinShare   = document.getElementById("onBtnJoinShare");
-      this.btnJoinCopy    = document.getElementById("onBtnJoinCopy");
-
-      this.linkView = document.getElementById("onLinkView");
-
       this.viewport = { w: 800, h: 600, dpr: 1 };
       this.stars=[];
       this.lastT = performance.now();
 
-      this.role = null;
+      this.role = null;           // "host" or "join"
+      this.room = "";
+      this.ws = null;
+
       this.pc = null;
       this.dc = null;
       this.connected=false;
@@ -1525,6 +1462,7 @@
       this.btnMenu.onclick = ()=>goMenu();
       this.btnPause.onclick = ()=>this.sendCmd("togglePause");
       this.btnRestart.onclick = ()=>this.sendCmd("restart");
+      this.btnStartServe.onclick = ()=>this.startOrServe();
 
       const bindHold=(el, which)=>{
         el.addEventListener("pointerdown",(e)=>{e.preventDefault(); if(which==="L")this.holdL=true; else this.holdR=true; el.setPointerCapture?.(e.pointerId);},{passive:false});
@@ -1532,30 +1470,24 @@
         el.addEventListener("pointercancel",()=>{ if(which==="L")this.holdL=false; else this.holdR=false;});
         el.addEventListener("pointerleave",()=>{ if(which==="L")this.holdL=false; else this.holdR=false;});
       };
-      bindHold(this.tLeft,"L");
-      bindHold(this.tRight,"R");
+      bindHold(this.tLeft,"L"); bindHold(this.tRight,"R");
 
       this.canvas.addEventListener("pointerdown",(e)=>{
         this.canvas.setPointerCapture?.(e.pointerId);
         this.pointer.down=true;
         const r=this.canvas.getBoundingClientRect();
         this.pointer.x=e.clientX-r.left; this.pointer.y=e.clientY-r.top;
-      });
+      }, {passive:false});
       this.canvas.addEventListener("pointermove",(e)=>{
         if(!this.pointer.down) return;
         const r=this.canvas.getBoundingClientRect();
         this.pointer.x=e.clientX-r.left; this.pointer.y=e.clientY-r.top;
-      });
-      window.addEventListener("pointerup",()=>{ this.pointer.down=false; });
+      }, {passive:true});
+      window.addEventListener("pointerup",()=>{ this.pointer.down=false; }, {passive:true});
 
       this.btnHost.onclick = ()=>this.setRole("host");
       this.btnJoin.onclick = ()=>this.setRole("join");
-
-      this.btnInviteShare.onclick = ()=>this.makeInvite(true);
-      this.btnInviteCopy.onclick  = ()=>this.makeInvite(false);
-
-      this.btnJoinShare.onclick = ()=>this.makeJoin(true);
-      this.btnJoinCopy.onclick  = ()=>this.makeJoin(false);
+      this.btnConnect.onclick = ()=>this.connectWithRoom();
 
       window.addEventListener("resize", ()=>this.resize());
       this.resize();
@@ -1563,11 +1495,12 @@
 
     stop(){
       this._stopped=true;
+      try{ this.ws?.close(); }catch(e){}
       try{ this.dc?.close(); }catch(e){}
       try{ this.pc?.close(); }catch(e){}
-      this.dc=null; this.pc=null;
+      this.ws=null; this.dc=null; this.pc=null;
       this.connected=false;
-      this.hostSim?.stop();
+      this.hostSim?.stop?.();
       this.hostSim=null;
     }
 
@@ -1592,25 +1525,13 @@
       this.onModalText.textContent = text;
       this.onOverlay.classList.add("on");
     }
-    overlayOff(){
-      this.onOverlay.classList.remove("on");
-    }
+    overlayOff(){ this.onOverlay.classList.remove("on"); }
 
     setRole(role){
       this.role = role;
       this.onRoleLabel.textContent = role.toUpperCase();
-      this.setLink("(まだありません)");
-      if(role==="host"){
-        this.overlayOn("Host（親）", "『招待リンクを共有』→相手へ送る。相手の参加リンクを開くと接続します。");
-      }else{
-        this.overlayOn("Join（子）", "Hostの招待リンクを開いたら『参加リンクを共有』を押すだけ。");
-      }
+      this.overlayOn(role==="host"?"Host（親）":"Join（子）","合言葉を入力して「接続する」");
       beep(620,0.05,"triangle",0.06);
-    }
-
-    setLink(url){
-      this._lastLink = url;
-      this.linkView.textContent = url;
     }
 
     createPC(){
@@ -1626,9 +1547,9 @@
       this.dc = dc;
       dc.onopen = ()=>{
         this.connected=true;
-        beep(880,0.08,"triangle",0.08);
         this.overlayOff();
         toast("接続しました");
+        beep(880,0.08,"triangle",0.08);
 
         if(this.role==="host"){
           this.hostSim = new OnlineHostSim(this.canvas, this.hud);
@@ -1636,10 +1557,7 @@
         }
       };
       dc.onmessage = (ev)=>{
-        try{
-          const msg = JSON.parse(ev.data);
-          this.handleMsg(msg);
-        }catch(e){}
+        try{ this.handleMsg(JSON.parse(ev.data)); }catch(e){}
       };
       dc.onclose = ()=>{
         this.connected=false;
@@ -1648,16 +1566,14 @@
     }
 
     send(msg){
-      if(this.dc && this.dc.readyState==="open"){
-        this.dc.send(JSON.stringify(msg));
-      }
+      if(this.dc && this.dc.readyState==="open") this.dc.send(JSON.stringify(msg));
     }
 
     sendCmd(cmd){
       if(!this.connected) return;
       if(this.role==="host"){
-        if(cmd==="togglePause") this.hostSim?.togglePause();
-        if(cmd==="restart") this.hostSim?.restartMatch();
+        if(cmd==="togglePause") this.hostSim?.togglePause?.();
+        if(cmd==="restart") this.hostSim?.restartMatch?.();
       }else{
         this.send({t:"cmd", cmd});
       }
@@ -1666,9 +1582,10 @@
     handleMsg(msg){
       if(this.role==="host"){
         if(msg.t==="input"){
-          if(typeof msg.p2x==="number") this.hostSim?.applyRemotePaddleX(msg.p2x);
-          if(msg.cmd==="togglePause") this.hostSim?.togglePause();
-          if(msg.cmd==="restart") this.hostSim?.restartMatch();
+          if(typeof msg.p2x==="number") this.hostSim?.applyRemotePaddleX?.(msg.p2x);
+          if(msg.cmd==="togglePause") this.hostSim?.togglePause?.();
+          if(msg.cmd==="restart") this.hostSim?.restartMatch?.();
+          if(msg.cmd==="start") this.hostSim?.startOrServe?.();
         }
         return;
       }
@@ -1688,140 +1605,97 @@
       }
     }
 
-    async makeInvite(share){
-      if(!this.role || this.role!=="host"){
-        toast("Hostを選んでください");
-        return;
-      }
-      if(!this.pc){
-        this.pc = this.createPC();
-        const dc = this.pc.createDataChannel("game");
-        this.attachDataChannel(dc);
-      }
-
-      const offer = await this.pc.createOffer();
-      await this.pc.setLocalDescription(offer);
-
-      await new Promise((resolve)=>{
-        if(this.pc.iceGatheringState==="complete") return resolve();
-        const onState=()=>{
-          if(this.pc.iceGatheringState==="complete"){
-            this.pc.removeEventListener("icegatheringstatechange", onState);
-            resolve();
-          }
-        };
-        this.pc.addEventListener("icegatheringstatechange", onState);
-      });
-
-      const code = encodeSDP(this.pc.localDescription);
-      const url = buildUrlWithHash({ role:"join", offer: code, diff: String(difficulty) });
-      this.setLink(url);
-
-      if(share) await shareOrCopy(url, "ブロック崩し：招待リンク");
-      else {
-        const ok = await copyText(url);
-        if(ok){ toast("招待リンクをコピーしました"); beep(760,0.06,"triangle",0.06); }
-        else toast("コピーできませんでした");
-      }
+    wsSend(obj){
+      if(this.ws && this.ws.readyState===1) this.ws.send(JSON.stringify(obj));
     }
 
-    async makeJoin(share){
-      if(!this.role || this.role!=="join"){
-        toast("Joinを選んでください");
-        return;
-      }
-      const h = parseHash();
-      const offerCode = h.offer;
-      if(!offerCode){
-        toast("Hostの招待リンクを開いてから押してください");
-        return;
-      }
+    async ensurePeer(){
+      if(this.pc) return;
+      this.pc = this.createPC();
+      this.pc.onicecandidate = (e)=>{
+        if(e.candidate) this.wsSend({ t:"ice", cand: e.candidate });
+      };
 
-      if(!this.pc){
-        this.pc = this.createPC();
+      if(this.role==="host"){
+        const dc = this.pc.createDataChannel("game");
+        this.attachDataChannel(dc);
+      }else{
         this.pc.ondatachannel = (ev)=>this.attachDataChannel(ev.channel);
       }
+    }
 
-      const offer = decodeSDP(offerCode);
-      await this.pc.setRemoteDescription(offer);
+    async onSignal(raw){
+      let msg=null;
+      try{ msg=JSON.parse(raw); }catch{ return; }
+      if(!msg || !msg.t) return;
+      if(msg.t==="hello" || msg.t==="count") return;
 
-      const answer = await this.pc.createAnswer();
-      await this.pc.setLocalDescription(answer);
-
-      await new Promise((resolve)=>{
-        if(this.pc.iceGatheringState==="complete") return resolve();
-        const onState=()=>{
-          if(this.pc.iceGatheringState==="complete"){
-            this.pc.removeEventListener("icegatheringstatechange", onState);
-            resolve();
-          }
-        };
-        this.pc.addEventListener("icegatheringstatechange", onState);
-      });
-
-      const ansCode = encodeSDP(this.pc.localDescription);
-
-      const url = buildUrlWithHash({
-        role:"host",
-        offer: offerCode,
-        answer: ansCode,
-        diff: String(difficulty)
-      });
-
-      this.setLink(url);
-
-      if(share) await shareOrCopy(url, "ブロック崩し：参加リンク");
-      else{
-        const ok = await copyText(url);
-        if(ok){ toast("参加リンクをコピーしました"); beep(760,0.06,"triangle",0.06); }
-        else toast("コピーできませんでした");
+      if(msg.t==="offer"){
+        if(this.role!=="join") return;
+        await this.ensurePeer();
+        await this.pc.setRemoteDescription(msg.desc);
+        const ans = await this.pc.createAnswer();
+        await this.pc.setLocalDescription(ans);
+        this.wsSend({ t:"answer", desc: this.pc.localDescription });
+        return;
+      }
+      if(msg.t==="answer"){
+        if(this.role!=="host") return;
+        await this.ensurePeer();
+        await this.pc.setRemoteDescription(msg.desc);
+        return;
+      }
+      if(msg.t==="ice"){
+        await this.ensurePeer();
+        try{ await this.pc.addIceCandidate(msg.cand); }catch{}
+        return;
       }
     }
 
-    async autoFromUrlHash(){
-      const h = parseHash();
-      if(!h || (!h.offer && !h.answer && !h.role)) return;
+    openWS(room){
+      const url = wsURL(room, this.role || "peer");
+      const ws = new WebSocket(url);
+      ws.onopen = ()=>{ toast("合言葉ルーム接続"); };
+      ws.onmessage = (ev)=>this.onSignal(ev.data);
+      ws.onclose = ()=>{ if(!this.connected) this.overlayOn("接続が閉じました", "合言葉を確認してやり直してください"); };
+      ws.onerror = ()=>{ if(!this.connected) this.overlayOn("エラー", "Worker URL / HTTPS を確認してください"); };
+      this.ws = ws;
+    }
 
-      if(h.diff){
-        const d = parseInt(h.diff,10);
-        if([1,2,3].includes(d)) applyDifficulty(d);
-      }
-
-      if(h.role==="join" && h.offer){
-        this.setRole("join");
-        this.overlayOn("Join（子）", "招待リンクを受け取りました。『参加リンクを共有』を押すだけです。");
+    async connectWithRoom(){
+      if(!this.role){
+        toast("Host / Join を選んでください");
         return;
       }
-
-      if(h.role==="host" && h.offer && h.answer){
-        this.setRole("host");
-        this.overlayOn("接続中", "接続が完了すると自動で閉じます。");
-
-        this.pc = this.createPC();
-        const dc = this.pc.createDataChannel("game");
-        this.attachDataChannel(dc);
-
-        try{
-          const offer = decodeSDP(h.offer);
-          const answer = decodeSDP(h.answer);
-          await this.pc.setLocalDescription(offer);
-          await this.pc.setRemoteDescription(answer);
-          beep(820,0.08,"triangle",0.08);
-          toast("接続処理を開始しました");
-        }catch(e){
-          this.overlayOn("エラー", "参加リンクが壊れている可能性があります。");
-        }
+      const room = (this.roomInput.value || "").trim();
+      if(!room){
+        toast("合言葉を入れてください");
+        beep(220,0.06,"sine",0.06);
         return;
+      }
+      this.room = room;
+      this.overlayOn("接続中…", `合言葉「${room}」で待機/接続します`);
+      this.openWS(room);
+
+      // Host は offer を投げる
+      if(this.role==="host"){
+        await this.ensurePeer();
+        await new Promise(res=>{
+          const tick=()=>{
+            if(this.ws && this.ws.readyState===1) return res();
+            setTimeout(tick, 40);
+          }; tick();
+        });
+        const offer = await this.pc.createOffer();
+        await this.pc.setLocalDescription(offer);
+        this.wsSend({ t:"offer", desc: this.pc.localDescription });
       }
     }
 
     startOrServe(){
       if(!this.connected) return;
-      if(this.role==="host"){
-        this.hostSim?.startOrServe();
-      }else{
-        this.send({t:"cmd", cmd:"start"});
-      }
+      if(this.role==="host") this.hostSim?.startOrServe?.();
+      else this.send({t:"input", cmd:"start"});
     }
 
     update(dt){
@@ -1868,7 +1742,7 @@
 
       const s = this.snapshot;
       if(!s){
-        ctx.fillStyle="rgba(234,240,255,.65)";
+        ctx.fillStyle="rgba(234,240,255,.70)";
         ctx.font="900 13px system-ui";
         ctx.textAlign="center";
         ctx.fillText("接続待ち…（Hostが接続すると状態が届きます）", w/2, h/2);
@@ -1908,12 +1782,6 @@
       };
       drawPaddleBall(s.p2p, s.p2b, 265);
       drawPaddleBall(s.p1p, s.p1b, 190);
-
-      const gapY=(s.p2court.y + s.p2court.h + s.p1court.y)/2;
-      ctx.fillStyle="rgba(234,240,255,.18)";
-      ctx.font="900 12px system-ui";
-      ctx.textAlign="center";
-      ctx.fillText("ONLINE VS", w/2, gapY+4);
     }
 
     loop(){
@@ -1929,13 +1797,12 @@
     async start(){
       this._stopped=false;
       this.onRoleLabel.textContent = "-";
-      this.setLink("(まだありません)");
-      this.overlayOn("オンライン接続", "Host（親）か Join（子）を選ぶ → 共有ボタンだけでOK");
-      await this.autoFromUrlHash();
+      this.overlayOn("合言葉オンライン", "Host/Joinを選択 → 合言葉 → 接続する");
       this.loop();
     }
   }
 
+  // ===== Online Host Simulation (authoritative) =====
   class OnlineHostSim{
     constructor(canvas, hud){
       this.canvas = canvas;
@@ -1959,18 +1826,17 @@
       this.floatTexts=[];
 
       this.pointer = {down:false, x:0};
-
       this.canvas.addEventListener("pointerdown",(e)=>{
         this.pointer.down=true;
         const r=this.canvas.getBoundingClientRect();
         this.pointer.x=e.clientX-r.left;
-      });
+      }, {passive:false});
       this.canvas.addEventListener("pointermove",(e)=>{
         if(!this.pointer.down) return;
         const r=this.canvas.getBoundingClientRect();
         this.pointer.x=e.clientX-r.left;
-      });
-      window.addEventListener("pointerup",()=>this.pointer.down=false);
+      }, {passive:true});
+      window.addEventListener("pointerup",()=>this.pointer.down=false, {passive:true});
 
       window.addEventListener("resize", ()=>this.resize());
       this.resize();
@@ -2046,7 +1912,12 @@
       else if(this.state==="PAUSED"){ this.state="RUNNING"; toast("再開"); beep(520,0.06,"sine",0.05); }
     }
 
-    restartMatch(){ this.round=1; this.layout(true); toast("リスタート"); beep(440,0.06,"triangle",0.06); }
+    restartMatch(){
+      this.round=1;
+      this.layout(true);
+      toast("リスタート");
+      beep(440,0.06,"triangle",0.06);
+    }
 
     applyRemotePaddleX(x){
       const pad=this.p2p.w/2;
@@ -2232,36 +2103,6 @@
       };
       drawPaddleBall(this.p2p, this.p2b, 265);
       drawPaddleBall(this.p1p, this.p1b, 190);
-
-      ctx.textAlign="center";
-      ctx.font="1000 14px system-ui";
-      for(let i=this.floatTexts.length-1;i>=0;i--){
-        const t=this.floatTexts[i];
-        t.t += dt;
-        t.y += t.vy*dt;
-        t.vy -= 20*dt;
-        const a = 1 - (t.t/t.life);
-        ctx.globalAlpha = a;
-        ctx.fillStyle = `hsla(${t.hue}, 95%, 72%, 1)`;
-        ctx.fillText(t.text, t.x, t.y);
-        if(t.t>=t.life) this.floatTexts.splice(i,1);
-      }
-      ctx.globalAlpha=1;
-
-      for(let i=this.particles.length-1;i>=0;i--){
-        const p=this.particles[i];
-        p.t += dt;
-        p.x += p.vx*dt; p.y += p.vy*dt;
-        p.vx *= (1 - dt*2.5);
-        p.vy *= (1 - dt*2.5);
-        p.vy += 420*dt;
-        const a=1-(p.t/p.life);
-        ctx.globalAlpha=a;
-        ctx.fillStyle=`hsla(${p.hue}, 90%, 65%, 1)`;
-        ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill();
-        if(p.t>=p.life) this.particles.splice(i,1);
-      }
-      ctx.globalAlpha=1;
     }
 
     loop(){
@@ -2281,6 +2122,7 @@
     }
   }
 
+  // ===== App wiring =====
   let activeGame = null;
 
   btnStartStage.onclick = () => {
@@ -2298,6 +2140,9 @@
   };
 
   document.getElementById("stageBtnMenu").onclick = ()=>goMenu();
+
+  // Online UI defaults
+  document.getElementById("onBtnMenu").onclick = ()=>goMenu();
 
   applyDifficulty(1);
   renderRank();
