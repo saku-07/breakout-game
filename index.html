@@ -265,7 +265,6 @@
     .modal .actions .btn{flex:1}
     .modal .sub{margin-top:10px; color:rgba(234,240,255,.78); font-weight:800; font-size:12px; line-height:1.55}
 
-    /* “長押しコピー”が出やすい textarea/input を使わない：表示はdiv */
     .linkBox{
       width:100%;
       border-radius: 14px;
@@ -341,7 +340,6 @@
       .touchHint{display:block}
     }
 
-    /* 端末別説明 */
     .pcOnly{display:block}
     .mobileOnly{display:none}
     @media (max-width: 920px), (pointer: coarse){
@@ -349,7 +347,6 @@
       .mobileOnly{display:block}
     }
 
-    /* Online screen compact */
     .compact .header{padding: 10px 12px;}
     .compact .brand h1{font-size: 14px;}
     .compact .brand small{font-size: 11px;}
@@ -408,8 +405,9 @@
       <div class="stageGrid" id="stageGrid"></div>
 
       <div class="twoCols" style="margin-top:10px">
-        <button class="btn secondary" id="btnResetProgress">進行リセット</button>
+        <!-- ✅ 進行リセット削除 -->
         <button class="btn secondary" id="btnResetRank">ランキング消去</button>
+        <button class="btn secondary" id="btnDummy" style="opacity:.7; cursor:default"> </button>
       </div>
     </div>
 
@@ -451,7 +449,7 @@
       <div class="logo"></div>
       <div>
         <h1>ステージ</h1>
-        <small>クリアで次の面が解放されます</small>
+        <small>クリアで次の面へ（自動遷移）</small>
       </div>
     </div>
     <div class="headerRight">
@@ -582,7 +580,6 @@
   const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
   const rand = (a,b)=>a+Math.random()*(b-a);
 
-  // ===== Toast =====
   const toastEl = document.getElementById("toast");
   let toastTimer=null;
   function toast(msg){
@@ -592,7 +589,6 @@
     toastTimer=setTimeout(()=>toastEl.classList.remove("on"), 1100);
   }
 
-  // ===== SFX =====
   let SFX_ON = true;
   let audioCtx = null;
   function beep(freq=440, dur=0.06, type="sine", vol=0.06) {
@@ -613,14 +609,12 @@
     }catch(e){}
   }
 
-  // ===== Difficulty profiles =====
   const DIFF = {
     1: { lives:3, hardChance:0.18, baseSpeed: 320, paddleScale:1.07 },
     2: { lives:3, hardChance:0.25, baseSpeed: 390, paddleScale:1.00 },
     3: { lives:2, hardChance:0.34, baseSpeed: 470, paddleScale:0.92 },
   };
 
-  // ===== Progress (Stages) =====
   const STAGE_COUNT = 15;
   const PROG_KEY = "breakout_stage_progress_v1";
   function loadProgress(){
@@ -655,12 +649,7 @@
       renderStageGrid();
     }
   }
-  function resetProgress(){
-    localStorage.removeItem(PROG_KEY);
-    renderStageGrid();
-  }
 
-  // ===== Ranking (localStorage) =====
   const RANK_KEY = "breakout_rankings_v3";
   function loadRank(){
     try{ return JSON.parse(localStorage.getItem(RANK_KEY) || "[]"); }catch(e){ return []; }
@@ -707,7 +696,6 @@
     `;
   }
 
-  // ===== Screens / UI =====
   const screenMenu = document.getElementById("screenMenu");
   const screenStage = document.getElementById("screenStage");
   const screenOnline = document.getElementById("screenOnline");
@@ -720,7 +708,6 @@
   const btnStartStage = document.getElementById("btnStartStage");
   const btnStartOnline = document.getElementById("btnStartOnline");
   const btnResetRank = document.getElementById("btnResetRank");
-  const btnResetProgress = document.getElementById("btnResetProgress");
 
   const stageGridEl = document.getElementById("stageGrid");
 
@@ -735,7 +722,6 @@
     return matchMedia("(pointer: coarse)").matches || innerWidth <= 920;
   }
 
-  // ===== Input shared =====
   const input = { left:false, right:false };
   window.addEventListener("keydown", (e)=>{
     if(e.code==="ArrowLeft") input.left=true;
@@ -753,7 +739,6 @@
   function goMenu(){
     activeGame?.stop?.();
     activeGame = null;
-    // hashを消して“変な状態で再入室”を防止
     history.replaceState(null, "", location.pathname + location.search);
     showScreen("menu");
     renderRank();
@@ -794,15 +779,6 @@
     }
   };
 
-  btnResetProgress.onclick = () => {
-    if(confirm("ステージ進行をリセットしますか？（STAGE1から）")){
-      resetProgress();
-      beep(220,0.08,"sine",0.06);
-      toast("進行をリセットしました");
-    }
-  };
-
-  // ===== Difficulty state =====
   let difficulty = 1;
   function applyDifficulty(n){
     difficulty = n;
@@ -817,7 +793,6 @@
     beep(620,0.05,"triangle",0.06);
   });
 
-  // ===== Stage select =====
   let selectedStage = 1;
 
   function renderStageGrid(){
@@ -840,15 +815,6 @@
     }
   }
 
-  // ===== Math / Collision =====
-  function reflectBallFromPaddle(ball, paddle, dirY){
-    const hit = (ball.x - paddle.x) / (paddle.w/2);
-    const angle = clamp(hit, -1, 1) * (Math.PI * 0.36);
-    const speed = Math.hypot(ball.vx, ball.vy);
-    ball.vx = Math.sin(angle) * speed;
-    ball.vy = Math.cos(angle) * speed * dirY;
-    ball.y += dirY * 2;
-  }
   function ballAABB(ball, r, box){
     const cx = clamp(ball.x, box.x, box.x + box.w);
     const cy = clamp(ball.y, box.y, box.y + box.h);
@@ -866,6 +832,14 @@
     ctx.arcTo(x, y, x+w, y, rr);
     ctx.closePath();
   }
+  function reflectBallFromPaddle(ball, paddle, dirY){
+    const hit = (ball.x - paddle.x) / (paddle.w/2);
+    const angle = clamp(hit, -1, 1) * (Math.PI * 0.36);
+    const speed = Math.hypot(ball.vx, ball.vy);
+    ball.vx = Math.sin(angle) * speed;
+    ball.vy = Math.cos(angle) * speed * dirY;
+    ball.y += dirY * 2;
+  }
   function addFloatText(arr, x,y, text, hue=185){
     arr.push({x,y, text, hue, t:0, life:0.75, vy:-48});
   }
@@ -876,8 +850,6 @@
     el.classList.add("scorePulse");
   }
 
-  // ===== Stage patterns =====
-  // ブロック形状：rect / diamond / capsule / triangle-ish(視覚) など、当たり判定はAABB（軽量）
   function stageTheme(stage){
     const themes = [
       {name:"LINE",      hue:185, shape:"rect"},
@@ -900,7 +872,6 @@
   }
 
   function buildStageBricks(stage, court){
-    // グリッド座標（小セル）で“形”を作る → そこからブロック配置へ変換
     const baseCols = clamp(10 + Math.floor(stage/3), 10, 14);
     const baseRows = clamp(7 + Math.floor(stage/4), 7, 11);
 
@@ -908,72 +879,45 @@
     const topZone = court.y + 56;
     const availableH = court.h * 0.48;
 
-    // ブロックサイズはステージで少し変える（視覚変化）
     const cols = baseCols;
     const rows = baseRows;
 
     const bw = (court.w - pad*(cols-1)) / cols;
     const bh = clamp(availableH / rows, 14, 24);
 
-    // セルのON/OFFを決める
-    const on = (r,c)=>true;
-
     function pattern(stage,r,c){
-      // r:0..rows-1, c:0..cols-1
       const cx = (c - (cols-1)/2);
       const cy = (r - (rows-1)/2);
       const ax = Math.abs(cx), ay = Math.abs(cy);
 
       switch(((stage-1)%15)+1){
-        case 1: // LINE
-          return (r%2===0) && (c%1===0);
-        case 2: // PYRAMID
-          return (r <= rows-1) && (ax <= (r*0.75));
-        case 3: // WAVE
-          return (r <= rows-1) && (r === Math.floor((Math.sin(c*0.6)+1)*0.5*(rows-1)) || r===Math.floor((Math.sin(c*0.6+1.6)+1)*0.5*(rows-1)));
-        case 4: // RING
-          {
-            const d = Math.hypot(cx,cy);
-            return d>Math.min(cols,rows)*0.18 && d<Math.min(cols,rows)*0.40;
-          }
-        case 5: // X
-          return (Math.round(ax)===Math.round(ay)) || (Math.round(ax)===Math.round((rows-1)/2 - cy));
-        case 6: // HEART（ざっくり）
-          {
-            const x = cx/(cols/2);
-            const y = -cy/(rows/2);
-            const f = Math.pow(x*x + y*y - 0.4, 3) - x*x*y*y*y;
-            return f <= 0.001 && y> -0.55;
-          }
-        case 7: // MAZE
-          return (r%2===0) || (c%3===0);
-        case 8: // STAIRS
-          return c <= r + Math.floor(cols*0.2);
-        case 9: // DOUBLE bands
-          return (r<Math.floor(rows*0.35)) || (r>Math.floor(rows*0.60) && r<Math.floor(rows*0.88));
-        case 10: // CHECKER
-          return (r+c)%2===0;
-        case 11: // ARC
-          {
-            const d = Math.hypot(cx, cy+rows*0.2);
-            return d < Math.min(cols,rows)*0.42 && d > Math.min(cols,rows)*0.25 && r<rows*0.8;
-          }
-        case 12: // SPIRAL（ざっくり）
-          {
-            const ang = Math.atan2(cy, cx);
-            const d = Math.hypot(cx,cy);
-            const t = (ang + Math.PI) / (2*Math.PI);
-            const target = t * (Math.min(cols,rows)*0.45);
-            return Math.abs(d - target) < 0.7;
-          }
-        case 13: // TOWER
-          return ax < cols*0.18 || (r<rows*0.25 && ax<cols*0.28);
-        case 14: // FAN
-          return (r < rows*0.9) && (ay > ax*0.35) && (ay < ax*0.95 + rows*0.22);
-        case 15: // CROWN
-          return (r<rows*0.18) || (r<rows*0.5 && (c%3===1)) || (r===Math.floor(rows*0.5) && ax<cols*0.35);
-        default:
-          return true;
+        case 1: return (r%2===0);
+        case 2: return (ax <= (r*0.75));
+        case 3: return (r === Math.floor((Math.sin(c*0.6)+1)*0.5*(rows-1)) || r===Math.floor((Math.sin(c*0.6+1.6)+1)*0.5*(rows-1)));
+        case 4: { const d = Math.hypot(cx,cy); return d>Math.min(cols,rows)*0.18 && d<Math.min(cols,rows)*0.40; }
+        case 5: return (Math.round(ax)===Math.round(ay)) || (Math.round(ax)===Math.round((rows-1)/2 - cy));
+        case 6: {
+          const x = cx/(cols/2);
+          const y = -cy/(rows/2);
+          const f = Math.pow(x*x + y*y - 0.4, 3) - x*x*y*y*y;
+          return f <= 0.001 && y> -0.55;
+        }
+        case 7: return (r%2===0) || (c%3===0);
+        case 8: return c <= r + Math.floor(cols*0.2);
+        case 9: return (r<Math.floor(rows*0.35)) || (r>Math.floor(rows*0.60) && r<Math.floor(rows*0.88));
+        case 10:return (r+c)%2===0;
+        case 11:{ const d = Math.hypot(cx, cy+rows*0.2); return d < Math.min(cols,rows)*0.42 && d > Math.min(cols,rows)*0.25 && r<rows*0.8; }
+        case 12:{
+          const ang = Math.atan2(cy, cx);
+          const d = Math.hypot(cx,cy);
+          const t = (ang + Math.PI) / (2*Math.PI);
+          const target = t * (Math.min(cols,rows)*0.45);
+          return Math.abs(d - target) < 0.7;
+        }
+        case 13:return ax < cols*0.18 || (r<rows*0.25 && ax<cols*0.28);
+        case 14:return (r < rows*0.9) && (ay > ax*0.35) && (ay < ax*0.95 + rows*0.22);
+        case 15:return (r<rows*0.18) || (r<rows*0.5 && (c%3===1)) || (r===Math.floor(rows*0.5) && ax<cols*0.35);
+        default:return true;
       }
     }
 
@@ -988,13 +932,10 @@
         const y = topZone + r*(bh+pad);
         const hard = Math.random() < hardChance;
         const hp = hard ? 2 : 1;
-
         const hue = (t.hue + (c/cols)*40 + (r/rows)*20) % 360;
         bricks.push({x,y,w:bw,h:bh,hp,hue, pop:0, shape:t.shape});
       }
     }
-
-    // すごく少ない時は補強
     if(bricks.length < cols*rows*0.18){
       for(let r=0;r<Math.min(rows,6);r++){
         for(let c=0;c<cols;c++){
@@ -1027,7 +968,6 @@
       roundRect(ctx,x,y,bw,bh,999);
       ctx.fill();
     }else if(br.shape==="diamond"){
-      // 見た目だけダイヤ（当たり判定は四角）
       ctx.beginPath();
       ctx.moveTo(x+bw/2, y);
       ctx.lineTo(x+bw, y+bh/2);
@@ -1074,7 +1014,6 @@
     ctx.globalAlpha=1;
   }
 
-  // ===== Stage Game =====
   class StageGame {
     constructor(stage){
       this.stage = stage;
@@ -1167,7 +1106,7 @@
 
     baseSpeed(){
       const base = DIFF[difficulty].baseSpeed;
-      const mult = 1 + (this.stage-1) * 0.035; // ステージで少しだけ速度UP
+      const mult = 1 + (this.stage-1) * 0.035;
       return base * mult;
     }
 
@@ -1270,13 +1209,30 @@
     }
 
     finishStageClear(){
-      // ベスト更新＆解放
       setBest(this.stage, this.score|0);
       addRankEntry({ mode:"STAGE", diff:difficulty, stage:this.stage, score:this.score|0, ts: Date.now() });
+      if(this.stage < STAGE_COUNT) unlockStage(this.stage+1);
+    }
 
-      if(this.stage < STAGE_COUNT){
-        unlockStage(this.stage+1);
+    // ✅ クリアしたら「そのまま次ステージ」へ移行
+    gotoNextStage(){
+      if(this.stage >= STAGE_COUNT){
+        this.showOverlay("全ステージクリア！", `おめでとう！\n（ランキングに記録済み）`, true);
+        beep(920,0.11,"triangle",0.10);
+        return;
       }
+      this.stage += 1;
+      selectedStage = this.stage; // メニューの選択も追従
+      this.bricks = [];
+      this.ball = null;
+      this.paddle = null;
+      this.state = "READY";
+      this.layout();
+      const t = stageTheme(this.stage);
+      this.showOverlay(`次のステージへ！`, `STAGE ${this.stage} (${t.name})\nSpace（またはタップ）で開始`, true);
+      this.syncHud();
+      renderStageGrid();
+      beep(900,0.10,"triangle",0.10);
     }
 
     update(dt){
@@ -1378,19 +1334,12 @@
       }
 
       if(this.bricks.length===0){
+        // ✅ クリア→即次ステージへ
         this.state="READY";
         this.ball.stuck=true;
 
-        // クリア処理
         this.finishStageClear();
-
-        if(this.stage < STAGE_COUNT){
-          const next = this.stage + 1;
-          this.showOverlay("ステージクリア！", `STAGE ${next} が解放されました\nメニューで選択できます`, true);
-        }else{
-          this.showOverlay("全ステージクリア！", `おめでとう！\n（ランキングに記録済み）`, true);
-        }
-        beep(900,0.11,"triangle",0.10);
+        this.gotoNextStage();
       }
     }
 
@@ -1418,16 +1367,13 @@
       roundRect(ctx, this.court.x, this.court.y, this.court.w, this.court.h, 16);
       ctx.stroke();
 
-      // stage label
       const theme = stageTheme(this.stage);
       ctx.fillStyle="rgba(234,240,255,.18)";
       ctx.font="900 12px system-ui";
       ctx.textAlign="left";
       ctx.fillText(`STAGE ${this.stage} / ${theme.name}`, this.court.x+10, this.court.y+18);
 
-      for(const br of this.bricks){
-        drawBrick(ctx, br);
-      }
+      for(const br of this.bricks) drawBrick(ctx, br);
 
       const p=this.paddle;
       const hue=190;
@@ -1484,7 +1430,7 @@
     }
   }
 
-  // ===== Online (URL share signaling) =====
+  // ---- Online（前回と同じ：省略せずフル） ----
   function b64enc(str){ return btoa(unescape(encodeURIComponent(str))); }
   function b64dec(b64){ return decodeURIComponent(escape(atob(b64))); }
   function encodeSDP(desc){ return b64enc(JSON.stringify(desc)); }
@@ -1511,23 +1457,19 @@
     }
   }
   async function shareOrCopy(url, title){
-    // スマホはshareが最優先、PCはコピーでOK
     if(navigator.share){
       try{
         await navigator.share({ title, text:"このリンクを開いて参加してね", url });
         toast("共有しました");
         beep(820,0.06,"triangle",0.06);
         return;
-      }catch(e){
-        // shareキャンセル等 → コピーへ
-      }
+      }catch(e){}
     }
     const ok = await copyText(url);
     if(ok){ toast("コピーしました"); beep(760,0.06,"triangle",0.06); }
     else { toast("コピーできません（手動で共有してください）"); }
   }
 
-  // ===== Online VS game (Host sim / Join render) =====
   class OnlineGame {
     constructor(){
       this.canvas = document.getElementById("canvasOnline");
@@ -1569,7 +1511,7 @@
       this.stars=[];
       this.lastT = performance.now();
 
-      this.role = null; // host/join
+      this.role = null;
       this.pc = null;
       this.dc = null;
       this.connected=false;
@@ -1819,7 +1761,6 @@
 
       const ansCode = encodeSDP(this.pc.localDescription);
 
-      // ✅参加リンクにofferも同梱（Hostが開くだけで復元できる）
       const url = buildUrlWithHash({
         role:"host",
         offer: offerCode,
@@ -1846,14 +1787,12 @@
         if([1,2,3].includes(d)) applyDifficulty(d);
       }
 
-      // Joinが招待リンクを開いた状態
       if(h.role==="join" && h.offer){
         this.setRole("join");
         this.overlayOn("Join（子）", "招待リンクを受け取りました。『参加リンクを共有』を押すだけです。");
         return;
       }
 
-      // Hostが参加リンク（offer+answer同梱）を開いた状態 → 接続開始
       if(h.role==="host" && h.offer && h.answer){
         this.setRole("host");
         this.overlayOn("接続中", "接続が完了すると自動で閉じます。");
@@ -1877,7 +1816,6 @@
     }
 
     startOrServe(){
-      // オンラインはHost側で進行。Join側は操作のみ
       if(!this.connected) return;
       if(this.role==="host"){
         this.hostSim?.startOrServe();
@@ -1926,10 +1864,7 @@
       }
       ctx.globalAlpha=1;
 
-      if(this.role==="host"){
-        // hostはシミュが直接描画する
-        return;
-      }
+      if(this.role==="host"){ return; }
 
       const s = this.snapshot;
       if(!s){
@@ -2001,7 +1936,6 @@
     }
   }
 
-  // Host側のシミュ（軽量）
   class OnlineHostSim{
     constructor(canvas, hud){
       this.canvas = canvas;
@@ -2011,7 +1945,6 @@
       this.viewport = {w: 800, h: 600};
       this.lastT = performance.now();
       this.stars=[];
-      this.shake=0;
 
       this.state="READY";
       this.round=1;
@@ -2025,7 +1958,7 @@
       this.particles=[];
       this.floatTexts=[];
 
-      this.pointer = {down:false, x:0, y:0};
+      this.pointer = {down:false, x:0};
 
       this.canvas.addEventListener("pointerdown",(e)=>{
         this.pointer.down=true;
@@ -2056,16 +1989,14 @@
       }
     }
 
-    baseSpeed(){
-      return DIFF[difficulty].baseSpeed * 1.05;
-    }
+    baseSpeed(){ return DIFF[difficulty].baseSpeed * 1.05; }
 
     layout(resetScores){
       const {w,h} = this.viewport;
       const margin=18, gap=18;
       const courtH = (h - margin*2 - gap)/2;
-      this.c2 = { x: margin, y: margin, w: w-margin*2, h: courtH }; // P2 top
-      this.c1 = { x: margin, y: margin + courtH + gap, w: w-margin*2, h: courtH }; // P1 bottom
+      this.c2 = { x: margin, y: margin, w: w-margin*2, h: courtH };
+      this.c1 = { x: margin, y: margin + courtH + gap, w: w-margin*2, h: courtH };
 
       const d = DIFF[difficulty];
       const paddleW = clamp(this.c1.w*0.20*d.paddleScale, 86, 220);
@@ -2078,7 +2009,6 @@
       this.p1b = { x:this.p1p.x, y:this.p1p.y-18, r:7.5, vx: sp*(Math.random()<0.5?-0.75:0.75), vy: -sp*0.75, stuck:true };
       this.p2b = { x:this.p2p.x, y:this.p2p.y+18, r:7.5, vx: sp*(Math.random()<0.5?-0.75:0.75), vy:  sp*0.75, stuck:true };
 
-      // オンラインは見た目の違いでステージ風パターンを round に割当
       const s1 = ((this.round-1)%STAGE_COUNT)+1;
       const s2 = ((this.round+2)%STAGE_COUNT)+1;
       this.bricksP1 = buildStageBricks(s1, this.c1).map(b=>({...b}));
@@ -2086,9 +2016,7 @@
 
       this.p1.lives = d.lives;
       this.p2.lives = d.lives;
-      if(resetScores){
-        this.p1.score=0; this.p2.score=0;
-      }
+      if(resetScores){ this.p1.score=0; this.p2.score=0; }
       this.particles.length=0;
       this.floatTexts.length=0;
       this.state="READY";
@@ -2104,7 +2032,6 @@
     }
 
     startOrServe(){
-      if(this.state==="OVER"){ this.restartMatch(); return; }
       if(this.state==="PAUSED"){ this.togglePause(); return; }
       if(this.state==="READY"){
         this.state="RUNNING";
@@ -2115,23 +2042,11 @@
     }
 
     togglePause(){
-      if(this.state==="RUNNING"){
-        this.state="PAUSED";
-        toast("一時停止");
-        beep(280,0.06,"sine",0.05);
-      }else if(this.state==="PAUSED"){
-        this.state="RUNNING";
-        toast("再開");
-        beep(520,0.06,"sine",0.05);
-      }
+      if(this.state==="RUNNING"){ this.state="PAUSED"; toast("一時停止"); beep(280,0.06,"sine",0.05); }
+      else if(this.state==="PAUSED"){ this.state="RUNNING"; toast("再開"); beep(520,0.06,"sine",0.05); }
     }
 
-    restartMatch(){
-      this.round=1;
-      this.layout(true);
-      toast("リスタート");
-      beep(440,0.06,"triangle",0.06);
-    }
+    restartMatch(){ this.round=1; this.layout(true); toast("リスタート"); beep(440,0.06,"triangle",0.06); }
 
     applyRemotePaddleX(x){
       const pad=this.p2p.w/2;
@@ -2211,7 +2126,6 @@
         }
       }
 
-      // 落下判定：下に抜けたらライフ-1（courtから外側に出た）
       if(towardDown){
         if(ball.y - ball.r > court.y + court.h){
           player.lives -= 1;
@@ -2234,14 +2148,10 @@
     }
 
     update(dt){
-      // P1操作（Host側）
       const speed=560;
       const move = ((input.right?1:0)-(input.left?1:0));
-      if(this.pointer.down){
-        this.p1p.x = this.pointer.x;
-      }else{
-        this.p1p.x += move*speed*dt;
-      }
+      if(this.pointer.down){ this.p1p.x = this.pointer.x; }
+      else { this.p1p.x += move*speed*dt; }
       const pad=this.p1p.w/2;
       this.p1p.x = clamp(this.p1p.x, this.c1.x+pad, this.c1.x+this.c1.w-pad);
 
@@ -2253,20 +2163,14 @@
       this.stepCourt(dt, this.c1, this.p1p, this.p1b, this.bricksP1, this.p1, true);
       this.stepCourt(dt, this.c2, this.p2p, this.p2b, this.bricksP2, this.p2, false);
 
-      // ラウンド終了
       if(this.p1.lives<=0 || this.p2.lives<=0){
-        const winner = (this.p1.lives>this.p2.lives) ? "P1" : (this.p2.lives>this.p1.lives ? "P2" : "DRAW");
-        beep(900,0.10,"triangle",0.09);
-
-        // ランキング（合計スコア）
         addRankEntry({ mode:"ONLINE", diff:difficulty, score: (this.p1.score+this.p2.score)|0, ts: Date.now() });
-
-        toast(`ROUND ${this.round} 終了: ${winner}`);
+        toast(`ROUND ${this.round} 終了`);
+        beep(900,0.10,"triangle",0.09);
         this.round++;
         this.layout(false);
       }
 
-      // ブロック全消しでボーナス
       if(this.bricksP1.length===0){
         this.addScore(this.p1, 400, this.c1.x+this.c1.w/2, this.c1.y+this.c1.h/2, 160);
         this.bricksP1 = buildStageBricks(((this.round-1)%STAGE_COUNT)+1, this.c1).map(b=>({...b}));
@@ -2329,7 +2233,6 @@
       drawPaddleBall(this.p2p, this.p2b, 265);
       drawPaddleBall(this.p1p, this.p1b, 190);
 
-      // float text
       ctx.textAlign="center";
       ctx.font="1000 14px system-ui";
       for(let i=this.floatTexts.length-1;i>=0;i--){
@@ -2345,7 +2248,6 @@
       }
       ctx.globalAlpha=1;
 
-      // particles
       for(let i=this.particles.length-1;i>=0;i--){
         const p=this.particles[i];
         p.t += dt;
@@ -2379,10 +2281,8 @@
     }
   }
 
-  // ===== Active game =====
   let activeGame = null;
 
-  // menu: start stage
   btnStartStage.onclick = () => {
     applyDifficulty(parseInt(difficultySel.value,10));
     showScreen("stage");
@@ -2390,7 +2290,6 @@
     activeGame.start();
   };
 
-  // menu: start online
   btnStartOnline.onclick = () => {
     applyDifficulty(parseInt(difficultySel.value,10));
     showScreen("online");
@@ -2398,10 +2297,8 @@
     activeGame.start();
   };
 
-  // stage menu
   document.getElementById("stageBtnMenu").onclick = ()=>goMenu();
 
-  // initial
   applyDifficulty(1);
   renderRank();
   renderStageGrid();
