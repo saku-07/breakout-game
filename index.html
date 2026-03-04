@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>ブロック崩し（安定オンライン / ステージ解放 / ランキング）</title>
+  <title>ブロック崩し（オンライン / ステージ解放 / ランキング）</title>
   <style>
     :root{
       --bg0:#060814;
@@ -197,7 +197,7 @@
       <div class="logo"></div>
       <div>
         <h1>ブロック崩し <span style="opacity:.8">Stable Online</span></h1>
-        <small>ステージ解放 / ランキング（名前入力）/ 合言葉対戦</small>
+        <small>ステージ解放 / ランキング（名前入力）/ オンライン対戦</small>
       </div>
     </div>
     <div class="headerRight">
@@ -216,7 +216,7 @@
         <select id="difficulty">
           <option value="1">1（やさしい）</option>
           <option value="2">2（ふつう）</option>
-          <option value="3">3（むずい）</option>
+          <option value="3">3（むずかしい）</option>
         </select>
       </div>
 
@@ -260,8 +260,8 @@
 
       <div class="hint" style="margin-top:12px; opacity:.92">
         <b style="color:var(--b)">オンライン対戦</b><br/>
-        ・Host/Join + 合言葉だけ。<br/>
-        ・同じステージ/同じ配置で同時プレイ → スコア勝負（超安定）
+        ・Host/Join + 合言葉<br/>
+        ・同じステージ/同じ配置で同時プレイ → スコア勝負
       </div>
     </div>
   </div>
@@ -274,7 +274,7 @@
       <div class="logo"></div>
       <div>
         <h1>ステージ</h1>
-        <small>クリアで次へ（自動）</small>
+        <small>クリアで次へ</small>
       </div>
     </div>
     <div class="headerRight">
@@ -304,7 +304,7 @@
         <p id="stageModalText">Space（またはタップ）で開始</p>
         <div class="actions">
           <button class="btn" id="stageModalStart">開始</button>
-          <button class="btn secondary" id="stageModalMenu">メニューへ</button>
+          <button class="btn secondary" id="stageModalMenu">メニュー</button>
         </div>
       </div>
     </div>
@@ -324,7 +324,7 @@
       <div class="logo"></div>
       <div>
         <h1>オンライン対戦</h1>
-        <small>合言葉だけ（Firestore同期）</small>
+        <small>合言葉</small>
       </div>
     </div>
     <div class="headerRight">
@@ -568,7 +568,7 @@
     beep(SFX_ON?660:220,0.07,"square",0.06);
   };
   document.getElementById("btnResetStage").onclick=()=>{ if(confirm("ステージ進行を初期化しますか？")) resetProgress(); };
-  document.getElementById("btnResetRank").onclick=()=>{ toast("Firestoreのランキング消去は管理画面から（安全のため）"); };
+  document.getElementById("btnResetRank").onclick=()=>{ toast("Firestoreのランキング消去は管理画面から"); };
 
   // ===== Input =====
   const input={left:false,right:false};
