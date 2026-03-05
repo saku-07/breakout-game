@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>ブロック崩し：（オンライン/ステージ/ランキング）</title>
+  <title>ブロック崩し （オンライン/50ステージ/パワーアップ/ランキング）</title>
   <style>
     :root{
       --bg0:#050814; --bg1:#0b1738;
       --text:#eaf0ff; --muted:#b9c7ff;
       --line:rgba(255,255,255,.14);
-      --a:#67e8f9; --b:#a78bfa; --ok:#34d399; --bad:#fb7185;
+      --a:#67e8f9; --b:#a78bfa; --ok:#34d399; --bad:#fb7185; --warn:#fbbf24;
       --shadow:0 18px 70px rgba(0,0,0,.55);
     }
     *{box-sizing:border-box}
@@ -21,12 +21,13 @@
         radial-gradient(900px 700px at 80% 20%, rgba(167,139,250,.12), transparent 60%),
         linear-gradient(180deg,var(--bg1),var(--bg0) 60%, #04050a);
       overflow:hidden;
-
       user-select:none; -webkit-user-select:none; -webkit-touch-callout:none;
       touch-action: manipulation;
     }
+
     .screen{position:fixed; inset:0; display:none; padding:clamp(10px,2vw,18px); gap:12px;}
     .screen.active{display:flex; flex-direction:column;}
+
     .glass{
       background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.06));
       border:1px solid var(--line);
@@ -57,6 +58,7 @@
       font-weight:1000; font-size:12px;
     }
     .dot{width:8px;height:8px;border-radius:99px;background:var(--a); box-shadow:0 0 18px rgba(103,232,249,.6)}
+
     .btn{
       appearance:none; border:none; cursor:pointer;
       padding:10px 12px; border-radius:14px;
@@ -106,7 +108,7 @@
     .twoCols{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
     @media (max-width: 520px){ .twoCols{grid-template-columns:1fr;} }
 
-    .stageGrid{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px; margin-top:10px;}
+    .stageGrid{display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:8px; margin-top:10px;}
     @media (max-width: 520px){ .stageGrid{grid-template-columns:repeat(4,minmax(0,1fr));} }
     .stageBtn{
       padding:10px 8px; border-radius:14px; border:1px solid var(--line);
@@ -143,7 +145,7 @@
     }
     .overlay.on{display:flex;}
     .modal{
-      width:min(760px, 92vw);
+      width:min(860px, 92vw);
       border-radius:18px; border:1px solid var(--line);
       background:linear-gradient(180deg, rgba(10,16,40,.88), rgba(5,7,14,.88));
       box-shadow:var(--shadow);
@@ -192,7 +194,7 @@
       <div class="logo"></div>
       <div>
         <h1>ブロック崩し <span style="opacity:.8"></span></h1>
-        <small>オンライン / ステージ解放 / ランキング（名前入力）</small>
+        <small>オンライン / 50ステージ解放 / パワーアップ / ランキング（名前入力）</small>
       </div>
     </div>
     <div class="headerRight">
@@ -221,10 +223,10 @@
       </div>
 
       <div class="hint" style="margin-top:10px; opacity:.92">
-        Lvが上がるほど <b style="color:var(--a)">速度↑</b> / <b style="color:var(--a)">硬いブロック↑</b> / <b style="color:var(--a)">ライフ↓</b>
+        Lvが上がるほど <b style="color:var(--a)">速度↑</b> / <b style="color:var(--a)">硬いブロック↑</b> / <b style="color:var(--a)">ライフ↓</b> / <b style="color:var(--warn)">アイテム重要</b>
       </div>
 
-      <h3 class="title" style="margin-top:14px">ステージ選択（解放式）</h3>
+      <h3 class="title" style="margin-top:14px">ステージ選択（解放式 1〜50）</h3>
       <div class="hint">クリアで次が解放。クリア後は自動で次へ進みます。</div>
       <div class="stageGrid" id="stageGrid"></div>
 
@@ -239,12 +241,14 @@
       <div class="pcOnly hint">
         <b style="color:var(--a)">PC</b><br/>
         ・移動：<span class="kbd">←</span><span class="kbd">→</span><br/>
-        ・開始：<span class="kbd">Space</span>　・一時停止：<span class="kbd">P</span>　・メニュー：<span class="kbd">Esc</span>
+        ・開始：<span class="kbd">Space</span>　・一時停止：<span class="kbd">P</span>　・メニュー：<span class="kbd">Esc</span><br/>
+        ・レーザー（アイテム取得時）：<span class="kbd">F</span>
       </div>
       <div class="mobileOnly hint">
         <b style="color:var(--a)">スマホ</b><br/>
         ・画面ドラッグ or 下の <b style="color:var(--b)">◀▶</b><br/>
-        ・開始：タップ（or 開始ボタン）
+        ・開始：タップ（or 開始ボタン）<br/>
+        ・レーザー：下の「LASER」ボタン（所持時）
       </div>
 
       <h3 class="title" style="margin-top:14px">ランキング（TOP10）</h3>
@@ -254,9 +258,10 @@
       </div>
 
       <div class="hint" style="margin-top:12px; opacity:.92">
-        <b style="color:var(--b)">オンライン対戦（安定）</b><br/>
+        <b style="color:var(--b)">オンライン対戦（超安定）</b><br/>
         ・Host/Join + 合言葉だけ。<br/>
-        ・同じステージ/同じ配置でプレイ → Firestoreでスコア同期 → 勝敗。
+        ・同じステージ/同じ配置でプレイ → Firestoreでスコア同期 → 勝敗。<br/>
+        ・相手がいなくても開始OK（練習にも使える）。
       </div>
     </div>
   </div>
@@ -287,6 +292,7 @@
         <div class="pill"><span class="dot"></span> SCORE: <span id="stageScore">0</span></div>
         <div class="pill"><span class="dot" style="background:var(--bad)"></span> LIFE: <span id="stageLives">3</span></div>
         <div class="pill"><span class="dot" style="background:var(--b)"></span> LEFT: <span id="stageLeft">0</span></div>
+        <div class="pill"><span class="dot" style="background:var(--warn)"></span> LASER: <span id="stageLaser">0</span></div>
       </div>
       <div class="hudRight hudBtnRow">
         <button class="btn secondary" id="stageBtnPause">一時停止</button>
@@ -308,6 +314,7 @@
     <div class="touchHint">スマホ: ドラッグ or ◀▶</div>
     <div class="touchBar">
       <button class="touchBtn" id="stageLeftBtn">◀</button>
+      <button class="touchBtn" id="stageLaserBtn">LASER</button>
       <button class="touchBtn" id="stageRightBtn">▶</button>
     </div>
   </div>
@@ -335,7 +342,7 @@
 
     <div class="hud">
       <div class="hudLeft">
-        <div class="pill"><span class="dot"></span> YOU: <span id="youScore">0</span> / LIFE <span id="youLives">3</span> / LEFT <span id="youLeft">0</span></div>
+        <div class="pill"><span class="dot"></span> YOU: <span id="youScore">0</span> / LIFE <span id="youLives">3</span> / LEFT <span id="youLeft">0</span> / LASER <span id="youLaser">0</span></div>
         <div class="pill"><span class="dot" style="background:var(--b)"></span> OPP: <span id="oppScore">0</span> / LIFE <span id="oppLives">3</span> / LEFT <span id="oppLeft">0</span></div>
       </div>
       <div class="hudRight hudBtnRow">
@@ -347,7 +354,7 @@
     <div class="overlay on" id="onOverlay">
       <div class="modal">
         <h2>合言葉オンライン</h2>
-        <p id="onMsg">Host → Join で同じ合言葉を入力して入室。相手が入ったら「開始」。</p>
+        <p id="onMsg">Host/Join を選択 → 合言葉 → 入室。開始はいつでもOK。</p>
 
         <div class="twoCols">
           <button class="btn ok" id="onBtnHost">Host（親）</button>
@@ -365,15 +372,16 @@
         </div>
 
         <div class="hint" style="margin-top:10px; opacity:.9">
-          ※ P2P(WebRTC)を使わない方式なので、テザリングでも安定します。<br/>
-          ※ 同じステージ/同じ配置でスコア勝負（同期はスコア/残り/ライフ）。
+          ・同じ合言葉＝同じステージ/同じブロック。<br/>
+          ・同期はスコア/残り/ライフ/クリア。
         </div>
       </div>
     </div>
 
-    <div class="touchHint">スマホ: ドラッグ or ◀▶</div>
+    <div class="touchHint">スマホ: ドラッグ or ◀▶（LASERは中央）</div>
     <div class="touchBar">
       <button class="touchBtn" id="onLeftBtn">◀</button>
+      <button class="touchBtn" id="onLaserBtn">LASER</button>
       <button class="touchBtn" id="onRightBtn">▶</button>
     </div>
   </div>
@@ -383,11 +391,12 @@
   // ===== Firebase =====
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import {
-    getFirestore, doc, setDoc, updateDoc, getDoc,
-    onSnapshot, collection, addDoc, query, orderBy, limit, getDocs,
+    getFirestore, doc, setDoc, getDoc, onSnapshot,
+    collection, addDoc, query, orderBy, limit, getDocs,
     serverTimestamp
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+  // あなたの設定
   const firebaseConfig = {
     apiKey: "AIzaSyDveiQpRF1O-j3b5YQ5AU1XXh0WxbnIvfE",
     authDomain: "blockgame-25fcf.firebaseapp.com",
@@ -396,7 +405,6 @@
     messagingSenderId: "687633508213",
     appId: "1:687633508213:web:ee32069ed5d91a2a00553c"
   };
-
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
@@ -451,14 +459,14 @@
 
   // ===== Difficulty =====
   const DIFF={
-    1:{lives:3, hardChance:0.18, speed:320, paddleScale:1.07},
-    2:{lives:3, hardChance:0.25, speed:390, paddleScale:1.00},
-    3:{lives:2, hardChance:0.34, speed:470, paddleScale:0.92},
+    1:{lives:3, hardChance:0.18, speed:320, paddleScale:1.10, dropRate:0.22},
+    2:{lives:3, hardChance:0.26, speed:395, paddleScale:1.00, dropRate:0.18},
+    3:{lives:2, hardChance:0.35, speed:470, paddleScale:0.92, dropRate:0.14},
   };
 
-  // ===== Stages =====
-  const STAGE_COUNT=15;
-  const PROG_KEY="bb_stage_progress_v4";
+  // ===== Stages (50) =====
+  const STAGE_COUNT=50;
+  const PROG_KEY="bb_stage_progress_v50";
   function loadProgress(){
     try{
       const obj=JSON.parse(localStorage.getItem(PROG_KEY)||"{}");
@@ -548,9 +556,9 @@
   document.getElementById("btnHow").onclick=()=>{
     const isMobile = matchMedia("(pointer: coarse)").matches || innerWidth<=920;
     if(isMobile){
-      alert("スマホ操作\n・ドラッグでバー移動\n・下の◀▶でも移動\n・開始：タップ or 開始ボタン\n・一時停止：画面の一時停止\n・メニュー：メニュー");
+      alert("スマホ操作\n・ドラッグでバー移動\n・下の◀▶でも移動\n・開始：タップ or 開始ボタン\n・一時停止：画面の一時停止\n・レーザー：LASERボタン（所持時）\n・メニュー：メニュー");
     }else{
-      alert("PC操作\n・移動：← →\n・開始：Space\n・一時停止：P\n・メニュー：Esc");
+      alert("PC操作\n・移動：← →\n・開始：Space\n・一時停止：P\n・メニュー：Esc\n・レーザー：F（所持時）");
     }
   };
   document.getElementById("btnMute").onclick=()=>{
@@ -562,10 +570,11 @@
   document.getElementById("btnReloadRank").onclick=()=>renderRank();
 
   // ===== Input =====
-  const input={left:false,right:false};
+  const input={left:false,right:false,fire:false};
   window.addEventListener("keydown",(e)=>{
     if(e.code==="ArrowLeft") input.left=true;
     if(e.code==="ArrowRight") input.right=true;
+    if(e.code==="KeyF") input.fire=true;
     if(e.code==="Space"){ e.preventDefault(); activeGame?.startOrServe?.(); }
     if(e.code==="KeyP"){ e.preventDefault(); activeGame?.togglePause?.(); }
     if(e.code==="Escape"){ e.preventDefault(); goMenu(); }
@@ -573,6 +582,7 @@
   window.addEventListener("keyup",(e)=>{
     if(e.code==="ArrowLeft") input.left=false;
     if(e.code==="ArrowRight") input.right=false;
+    if(e.code==="KeyF") input.fire=false;
   });
 
   function goMenu(){
@@ -596,7 +606,7 @@
       const best=p.best[String(s)]??0;
       const b=document.createElement("div");
       b.className="stageBtn"+(locked?" locked":"")+(s===selectedStage?" current":"");
-      b.innerHTML=`STAGE ${s}<span class="stageBadge">${locked?"LOCK":"BEST "+best}</span>`;
+      b.innerHTML=`S${s}<span class="stageBadge">${locked?"LOCK":"BEST "+best}</span>`;
       b.onclick=()=>{
         if(locked){ toast("まだ解放されていません"); beep(200,0.06,"sine",0.06); return; }
         selectedStage=s;
@@ -607,50 +617,38 @@
     }
   }
 
-  // ===== Stage patterns =====
+  // ===== Stage Theme / Brick Patterns =====
   function stageTheme(stage){
-    const themes=[
-      {name:"LINE", hue:185, shape:"rect"},
-      {name:"PYRAMID", hue:210, shape:"capsule"},
-      {name:"WAVE", hue:255, shape:"rect"},
-      {name:"RING", hue:170, shape:"diamond"},
-      {name:"X", hue:295, shape:"rect"},
-      {name:"HEART", hue:330, shape:"capsule"},
-      {name:"MAZE", hue:140, shape:"rect"},
-      {name:"STAIRS", hue:205, shape:"diamond"},
-      {name:"DOUBLE", hue:260, shape:"rect"},
-      {name:"CHECKER", hue:180, shape:"capsule"},
-      {name:"ARC", hue:230, shape:"diamond"},
-      {name:"SPIRAL", hue:300, shape:"rect"},
-      {name:"TOWER", hue:190, shape:"capsule"},
-      {name:"FAN", hue:270, shape:"diamond"},
-      {name:"CROWN", hue:210, shape:"rect"},
+    const palette=[
+      {h:185, shape:"rect"}, {h:210, shape:"capsule"}, {h:255, shape:"rect"}, {h:170, shape:"diamond"},
+      {h:295, shape:"rect"}, {h:330, shape:"capsule"}, {h:140, shape:"rect"}, {h:205, shape:"diamond"}
     ];
-    return themes[(stage-1)%themes.length];
+    return palette[(stage-1)%palette.length];
   }
 
   function buildStageBricks(stage, court, rng){
     const pad=8;
-    const cols=clamp(10+Math.floor(stage/3),10,14);
-    const rows=clamp(7+Math.floor(stage/4),7,11);
+    const cols=clamp(10+Math.floor(stage/4),10,14);
+    const rows=clamp(7+Math.floor(stage/6),7,12);
 
     const topZone=court.y+56;
-    const availableH=court.h*0.48;
+    const availableH=court.h*0.50;
     const bw=(court.w-pad*(cols-1))/cols;
     const bh=clamp(availableH/rows,14,24);
 
     const t=stageTheme(stage);
-    const hardChance=clamp(DIFF[difficulty].hardChance + (stage-1)*0.02, 0.12, 0.60);
+    const hardChance=clamp(DIFF[difficulty].hardChance + (stage-1)*0.012, 0.10, 0.62);
 
     function pattern(stage,r,c){
       const cx=(c-(cols-1)/2);
       const cy=(r-(rows-1)/2);
       const ax=Math.abs(cx), ay=Math.abs(cy);
-      switch(((stage-1)%15)+1){
+      const id=((stage-1)%20)+1;
+      switch(id){
         case 1: return (r%2===0);
         case 2: return (ax <= (r*0.75));
         case 3: return (r === Math.floor((Math.sin(c*0.6)+1)*0.5*(rows-1)) || r===Math.floor((Math.sin(c*0.6+1.6)+1)*0.5*(rows-1)));
-        case 4: { const d=Math.hypot(cx,cy); return d>Math.min(cols,rows)*0.18 && d<Math.min(cols,rows)*0.40; }
+        case 4: { const d=Math.hypot(cx,cy); return d>Math.min(cols,rows)*0.18 && d<Math.min(cols,rows)*0.42; }
         case 5: return (Math.round(ax)===Math.round(ay)) || (Math.round(ax)===Math.round((rows-1)/2 - cy));
         case 6: {
           const x=cx/(cols/2), y=-cy/(rows/2);
@@ -659,19 +657,24 @@
         }
         case 7: return (r%2===0) || (c%3===0);
         case 8: return c <= r + Math.floor(cols*0.2);
-        case 9: return (r<Math.floor(rows*0.35)) || (r>Math.floor(rows*0.60) && r<Math.floor(rows*0.88));
+        case 9: return (r<Math.floor(rows*0.35)) || (r>Math.floor(rows*0.60) && r<Math.floor(rows*0.92));
         case 10:return (r+c)%2===0;
-        case 11:{ const d=Math.hypot(cx, cy+rows*0.2); return d<Math.min(cols,rows)*0.42 && d>Math.min(cols,rows)*0.25 && r<rows*0.8; }
+        case 11:{ const d=Math.hypot(cx, cy+rows*0.2); return d<Math.min(cols,rows)*0.46 && d>Math.min(cols,rows)*0.22 && r<rows*0.85; }
         case 12:{
           const ang=Math.atan2(cy,cx);
           const d=Math.hypot(cx,cy);
           const tt=(ang+Math.PI)/(2*Math.PI);
-          const target=tt*(Math.min(cols,rows)*0.45);
-          return Math.abs(d-target)<0.7;
+          const target=tt*(Math.min(cols,rows)*0.50);
+          return Math.abs(d-target)<0.8;
         }
-        case 13:return ax < cols*0.18 || (r<rows*0.25 && ax<cols*0.28);
-        case 14:return (r < rows*0.9) && (ay > ax*0.35) && (ay < ax*0.95 + rows*0.22);
+        case 13:return ax < cols*0.18 || (r<rows*0.25 && ax<cols*0.30);
+        case 14:return (r < rows*0.92) && (ay > ax*0.35) && (ay < ax*0.95 + rows*0.22);
         case 15:return (r<rows*0.18) || (r<rows*0.5 && (c%3===1)) || (r===Math.floor(rows*0.5) && ax<cols*0.35);
+        case 16:return (r<rows*0.35 && ax<cols*0.40) || (r>rows*0.55 && ax<cols*0.25);
+        case 17:return (ay<rows*0.22) || (ax<cols*0.22);
+        case 18:return (Math.sin((c+stage)*0.55)+Math.cos((r+stage)*0.7))>0;
+        case 19:return (r===0||r===rows-1||c===0||c===cols-1) && !(ax<2 && ay<2);
+        case 20:return (ax+ay) < (Math.min(cols,rows)*0.55);
         default:return true;
       }
     }
@@ -684,17 +687,17 @@
         const y=topZone + r*(bh+pad);
         const hard=(rng()<hardChance);
         const hp=hard?2:1;
-        const hue=(t.hue + (c/cols)*40 + (r/rows)*20) % 360;
+        const hue=(t.h + (c/cols)*40 + (r/rows)*20 + stage*3) % 360;
         bricks.push({x,y,w:bw,h:bh,hp,hue,shape:t.shape, pop:0});
       }
     }
-    if(bricks.length < cols*rows*0.18){
+    if(bricks.length < cols*rows*0.20){
       for(let r=0;r<Math.min(rows,6);r++){
         for(let c=0;c<cols;c++){
           if((r+c)%2===0){
             const x=court.x + c*(bw+pad);
             const y=topZone + r*(bh+pad);
-            bricks.push({x,y,w:bw,h:bh,hp:1,hue:(t.hue+40)%360,shape:t.shape,pop:0});
+            bricks.push({x,y,w:bw,h:bh,hp:1,hue:(t.h+40+stage*2)%360,shape:t.shape,pop:0});
           }
         }
       }
@@ -759,22 +762,26 @@
     const dx=ball.x-cx, dy=ball.y-cy;
     return (dx*dx+dy*dy) <= r*r;
   }
-  function reflectBallFromPaddle(ball,paddle,dirY){
-    const hit=(ball.x-paddle.x)/(paddle.w/2);
-    const ang=clamp(hit,-1,1)*(Math.PI*0.36);
-    const sp=Math.hypot(ball.vx,ball.vy);
-    ball.vx=Math.sin(ang)*sp;
-    ball.vy=Math.cos(ang)*sp*dirY;
-    ball.y += dirY*2;
+
+  // ===== Powerups =====
+  const PU_TYPES=["WIDE","SLOW","MULTI","LASER","LIFE"];
+  function puColor(t){
+    if(t==="WIDE") return "rgba(103,232,249,.95)";
+    if(t==="SLOW") return "rgba(251,191,36,.95)";
+    if(t==="MULTI")return "rgba(167,139,250,.95)";
+    if(t==="LASER")return "rgba(251,113,133,.95)";
+    if(t==="LIFE") return "rgba(52,211,153,.95)";
+    return "rgba(255,255,255,.9)";
   }
 
-  // ===== Local Game =====
-  class LocalGame{
-    constructor(canvasId, overlayId, hud){
+  // ===== Local/Online shared Game Engine =====
+  class GameCore{
+    constructor(canvasId, overlayId, hud, opts){
       this.canvas=document.getElementById(canvasId);
       this.ctx=this.canvas.getContext("2d",{alpha:false});
       this.overlay=document.getElementById(overlayId);
       this.hud=hud;
+      this.opts=opts||{};
 
       this.viewport={w:800,h:600,dpr:1};
       this.pointer={down:false,x:0,y:0};
@@ -785,15 +792,21 @@
 
       this.court=null;
       this.paddle=null;
-      this.ball=null;
+      this.balls=[];
       this.bricks=[];
+      this.drops=[];
+      this.lasers=[];
 
       this.stage=1;
       this.score=0;
       this.lives=DIFF[difficulty].lives;
+      this.laserAmmo=0;
 
       this.seedBase=12345;
       this._stopped=false;
+
+      this._wideTimer=0;
+      this._slowTimer=0;
 
       this.canvas.addEventListener("pointerdown",(e)=>{
         this.canvas.setPointerCapture?.(e.pointerId);
@@ -827,8 +840,9 @@
 
     baseSpeed(){
       const base=DIFF[difficulty].speed;
-      const mult=1+(this.stage-1)*0.035;
-      return base*mult;
+      const mult=1+(this.stage-1)*0.018;
+      const slow = (this._slowTimer>0) ? 0.72 : 1;
+      return base*mult*slow;
     }
 
     layout(keepBricks){
@@ -837,18 +851,20 @@
       this.court={x:margin,y:margin,w:w-margin*2,h:h-margin*2};
 
       const d=DIFF[difficulty];
-      const paddleW=clamp(this.court.w*0.19*d.paddleScale, 86, 240);
+      const wide = (this._wideTimer>0) ? 1.35 : 1;
+      const paddleW=clamp(this.court.w*0.19*d.paddleScale*wide, 86, 280);
       const paddleH=clamp(this.court.h*0.02, 10, 14);
       const paddleY=this.court.y + this.court.h - 34;
 
       if(!this.paddle) this.paddle={x:this.court.x+this.court.w/2, y:paddleY, w:paddleW, h:paddleH};
       else { this.paddle.y=paddleY; this.paddle.w=paddleW; this.paddle.h=paddleH; }
 
-      if(!this.ball){
-        const sp=this.baseSpeed();
-        this.ball={x:this.paddle.x, y:this.paddle.y-18, r:7.5, vx: sp*(Math.random()<0.5?-0.75:0.75), vy:-sp*0.85, stuck:true};
-      }else if(this.ball.stuck){
-        this.ball.x=this.paddle.x; this.ball.y=this.paddle.y-18;
+      if(this.balls.length===0){
+        this.spawnBall(true);
+      }else{
+        for(const b of this.balls){
+          if(b.stuck){ b.x=this.paddle.x; b.y=this.paddle.y-18; }
+        }
       }
 
       if(!keepBricks || this.bricks.length===0){
@@ -860,19 +876,35 @@
       this.syncHud();
     }
 
+    spawnBall(stuck){
+      const sp=this.baseSpeed();
+      const dir=(Math.random()<0.5?-1:1);
+      this.balls.push({
+        x:this.paddle?.x??200,
+        y:(this.paddle?.y??400)-18,
+        r:7.5,
+        vx: sp*0.72*dir,
+        vy: -sp*0.88,
+        stuck: !!stuck
+      });
+    }
+
     syncHud(){
       if(this.hud){
         this.hud.score.textContent=String(this.score|0);
         this.hud.lives.textContent=String(this.lives|0);
         if(this.hud.stage) this.hud.stage.textContent=String(this.stage|0);
         if(this.hud.left) this.hud.left.textContent=String(this.bricks.length|0);
+        if(this.hud.laser) this.hud.laser.textContent=String(this.laserAmmo|0);
       }
     }
 
     showOverlay(title,text,on=true){
       if(!this.overlay) return;
-      this.overlay.querySelector("h2").textContent=title;
-      this.overlay.querySelector("p").textContent=text;
+      const h2=this.overlay.querySelector("h2");
+      const p=this.overlay.querySelector("p");
+      if(h2) h2.textContent=title;
+      if(p) p.textContent=text;
       this.overlay.classList.toggle("on",on);
     }
 
@@ -882,7 +914,7 @@
       if(this.state==="READY"){
         this.overlay?.classList.remove("on");
         this.state="RUNNING";
-        this.ball.stuck=false;
+        for(const b of this.balls) b.stuck=false;
         beep(520,0.07,"triangle",0.07);
       }
     }
@@ -902,83 +934,202 @@
     restartStage(keepScore){
       if(!keepScore) this.score=0;
       this.lives=DIFF[difficulty].lives;
-      this.ball=null; this.paddle=null; this.bricks=[];
+      this.laserAmmo=0;
+      this._wideTimer=0; this._slowTimer=0;
+      this.balls=[]; this.drops=[]; this.lasers=[]; this.bricks=[];
       this.state="READY";
       this.layout(false);
-      const t=stageTheme(this.stage);
-      this.showOverlay(`STAGE ${this.stage} (${t.name})`,`Space（またはタップ）で開始`,true);
+      this.showOverlay(`STAGE ${this.stage}`,`Space（またはタップ）で開始`,true);
     }
 
     stop(){ this._stopped=true; }
 
+    fireLaser(){
+      if(this.state!=="RUNNING") return;
+      if(this.laserAmmo<=0) return;
+      this.laserAmmo--;
+      const y=this.paddle.y-10;
+      const leftX=this.paddle.x - this.paddle.w*0.30;
+      const rightX=this.paddle.x + this.paddle.w*0.30;
+      this.lasers.push({x:leftX,y,vy:-820});
+      this.lasers.push({x:rightX,y,vy:-820});
+      beep(940,0.05,"square",0.05);
+      this.syncHud();
+    }
+
+    applyPowerup(type){
+      if(type==="WIDE"){ this._wideTimer=10.0; toast("WIDE!"); beep(700,0.06,"triangle",0.06); }
+      if(type==="SLOW"){ this._slowTimer=8.0; toast("SLOW!"); beep(520,0.06,"sine",0.05); }
+      if(type==="MULTI"){
+        toast("MULTI!");
+        beep(820,0.07,"triangle",0.07);
+        const add = Math.min(2, 4-this.balls.length);
+        for(let i=0;i<add;i++) this.spawnBall(false);
+      }
+      if(type==="LASER"){ this.laserAmmo += 10; toast("LASER +10"); beep(980,0.06,"square",0.06); }
+      if(type==="LIFE"){ this.lives = Math.min(9, this.lives+1); toast("LIFE +1"); beep(760,0.06,"triangle",0.06); }
+      this.layout(true);
+    }
+
     step(dt){
-      // paddle move
+      // timers
+      this._wideTimer=Math.max(0,this._wideTimer-dt);
+      this._slowTimer=Math.max(0,this._slowTimer-dt);
+
+      // move paddle
       const speed=560;
       const move=((input.right?1:0)-(input.left?1:0)) + ((this.holdR?1:0)-(this.holdL?1:0));
       if(this.pointer.down) this.paddle.x=this.pointer.x;
       else this.paddle.x += move*speed*dt;
+
       const pad=this.paddle.w/2;
       this.paddle.x=clamp(this.paddle.x, this.court.x+pad, this.court.x+this.court.w-pad);
 
-      const b=this.ball;
-      if(b.stuck){
-        b.x=this.paddle.x; b.y=this.paddle.y-18;
-        return;
+      // fire (PC)
+      if(input.fire){
+        input.fire=false;
+        this.fireLaser();
       }
-      if(this.state!=="RUNNING") return;
 
-      b.x += b.vx*dt; b.y += b.vy*dt;
-
-      if(b.x-b.r < this.court.x){ b.x=this.court.x+b.r; b.vx*=-1; }
-      if(b.x+b.r > this.court.x+this.court.w){ b.x=this.court.x+this.court.w-b.r; b.vx*=-1; }
-      if(b.y-b.r < this.court.y){ b.y=this.court.y+b.r; b.vy*=-1; }
-
+      // update balls
+      const sp=this.baseSpeed();
       const pbox={x:this.paddle.x-this.paddle.w/2,y:this.paddle.y-this.paddle.h/2,w:this.paddle.w,h:this.paddle.h};
-      if(b.vy>0 && ballAABB(b,b.r,pbox)){
-        reflectBallFromPaddle(b,this.paddle,-1);
-        beep(560,0.05,"triangle",0.06);
-      }
 
-      for(let i=this.bricks.length-1;i>=0;i--){
-        const br=this.bricks[i];
-        const box={x:br.x,y:br.y,w:br.w,h:br.h};
-        if(ballAABB(b,b.r,box)){
-          const cx=clamp(b.x, br.x, br.x+br.w);
-          const cy=clamp(b.y, br.y, br.y+br.h);
-          const dx=b.x-cx, dy=b.y-cy;
-          if(Math.abs(dx)>Math.abs(dy)) b.vx*=-1; else b.vy*=-1;
+      for(const b of this.balls){
+        if(b.stuck){
+          b.x=this.paddle.x; b.y=this.paddle.y-18;
+          continue;
+        }
+        if(this.state!=="RUNNING") continue;
 
-          br.hp -= 1; br.pop=1;
-          const gain = (br.hp<=0)?120:40;
-          this.score += gain;
-          if(br.hp<=0) this.bricks.splice(i,1);
-          beep(br.hp<=0?760:520,0.05,br.hp<=0?"square":"triangle",0.06);
-          break;
+        // normalize speed a bit
+        const cur=Math.hypot(b.vx,b.vy);
+        if(cur>0){
+          const target=sp;
+          const k=0.06;
+          b.vx = b.vx*(1-k) + b.vx/cur*target*k;
+          b.vy = b.vy*(1-k) + b.vy/cur*target*k;
+        }
+
+        b.x += b.vx*dt; b.y += b.vy*dt;
+
+        if(b.x-b.r < this.court.x){ b.x=this.court.x+b.r; b.vx*=-1; }
+        if(b.x+b.r > this.court.x+this.court.w){ b.x=this.court.x+this.court.w-b.r; b.vx*=-1; }
+        if(b.y-b.r < this.court.y){ b.y=this.court.y+b.r; b.vy*=-1; }
+
+        if(b.vy>0 && ballAABB(b,b.r,pbox)){
+          // reflect with angle
+          const hit=(b.x-this.paddle.x)/(this.paddle.w/2);
+          const ang=clamp(hit,-1,1)*(Math.PI*0.36);
+          const sp2=Math.hypot(b.vx,b.vy);
+          b.vx=Math.sin(ang)*sp2;
+          b.vy=-Math.abs(Math.cos(ang)*sp2);
+          b.y -= 2;
+          beep(560,0.05,"triangle",0.06);
+        }
+
+        // brick collisions (1 per frame per ball)
+        for(let i=this.bricks.length-1;i>=0;i--){
+          const br=this.bricks[i];
+          const box={x:br.x,y:br.y,w:br.w,h:br.h};
+          if(ballAABB(b,b.r,box)){
+            const cx=clamp(b.x, br.x, br.x+br.w);
+            const cy=clamp(b.y, br.y, br.y+br.h);
+            const dx=b.x-cx, dy=b.y-cy;
+            if(Math.abs(dx)>Math.abs(dy)) b.vx*=-1; else b.vy*=-1;
+
+            br.hp -= 1; br.pop=1;
+            const gain = (br.hp<=0)?140:50;
+            this.score += gain;
+
+            // drop
+            if(br.hp<=0){
+              const rng=mulberry32(((this.seedBase^this.stage) + i*97)>>>0);
+              const rate=DIFF[difficulty].dropRate;
+              if(rng() < rate){
+                const t=PU_TYPES[Math.floor(rng()*PU_TYPES.length)];
+                this.drops.push({x:br.x+br.w/2, y:br.y+br.h/2, vy:160, type:t});
+              }
+              this.bricks.splice(i,1);
+              beep(760,0.05,"square",0.06);
+            }else{
+              beep(520,0.05,"triangle",0.05);
+            }
+            break;
+          }
         }
       }
 
-      if(b.y-b.r > this.court.y+this.court.h){
+      // lasers
+      if(this.state==="RUNNING"){
+        for(let i=this.lasers.length-1;i>=0;i--){
+          const l=this.lasers[i];
+          l.y += l.vy*dt;
+          if(l.y < this.court.y-30){ this.lasers.splice(i,1); continue; }
+          // hit brick
+          for(let j=this.bricks.length-1;j>=0;j--){
+            const br=this.bricks[j];
+            if(l.x>=br.x && l.x<=br.x+br.w && l.y>=br.y && l.y<=br.y+br.h){
+              br.hp -= 1; br.pop=1;
+              this.score += (br.hp<=0)?120:40;
+              if(br.hp<=0) this.bricks.splice(j,1);
+              this.lasers.splice(i,1);
+              beep(900,0.04,"square",0.05);
+              break;
+            }
+          }
+        }
+      }
+
+      // drops
+      if(this.state==="RUNNING"){
+        for(let i=this.drops.length-1;i>=0;i--){
+          const d=this.drops[i];
+          d.y += d.vy*dt;
+          // catch
+          const px=this.paddle.x, pw=this.paddle.w;
+          const py=this.paddle.y;
+          if(d.y > py-14 && d.y < py+14 && d.x > px-pw/2 && d.x < px+pw/2){
+            this.applyPowerup(d.type);
+            this.score += 80;
+            this.drops.splice(i,1);
+            continue;
+          }
+          if(d.y > this.court.y+this.court.h+30){
+            this.drops.splice(i,1);
+          }
+        }
+      }
+
+      // ball out (remove)
+      for(let i=this.balls.length-1;i>=0;i--){
+        const b=this.balls[i];
+        if(!b.stuck && b.y-b.r > this.court.y+this.court.h){
+          this.balls.splice(i,1);
+        }
+      }
+
+      // if all balls lost
+      if(this.state==="RUNNING" && this.balls.length===0){
         this.lives -= 1;
         beep(160,0.10,"sine",0.08);
         if(this.lives<=0){
           this.state="OVER";
-          b.stuck=true;
           this.showOverlay("ゲームオーバー", `スコア: ${this.score}\nメニューで再挑戦できます`, true);
           return;
         }
-        const sp=this.baseSpeed();
-        b.stuck=true;
-        b.vx = sp*(Math.random()<0.5?-0.75:0.75);
-        b.vy = -sp*0.85;
         this.state="READY";
+        this.spawnBall(true);
         this.showOverlay("ミス！", `残りライフ: ${this.lives}\nSpaceで再開`, true);
-        return;
       }
 
+      // clear
       if(this.bricks.length===0){
-        this.state="READY";
-        b.stuck=true;
-        this.onClear?.();
+        if(this.state==="RUNNING"){
+          this.state="READY";
+          for(const b of this.balls) b.stuck=true;
+          this.onClear?.();
+        }
       }
     }
 
@@ -996,6 +1147,18 @@
       // bricks
       for(const br of this.bricks) drawBrick(ctx,br);
 
+      // drops
+      for(const d of this.drops){
+        ctx.fillStyle=puColor(d.type);
+        ctx.beginPath();
+        ctx.arc(d.x,d.y,8,0,Math.PI*2);
+        ctx.fill();
+        ctx.fillStyle="rgba(0,0,0,.45)";
+        ctx.font="900 9px system-ui";
+        ctx.textAlign="center";
+        ctx.fillText(d.type[0], d.x, d.y+3);
+      }
+
       // paddle
       const p=this.paddle;
       const g=ctx.createLinearGradient(p.x-p.w/2,p.y,p.x+p.w/2,p.y);
@@ -1005,12 +1168,19 @@
       roundRect(ctx,p.x-p.w/2,p.y-p.h/2,p.w,p.h,999);
       ctx.fill();
 
-      // ball
-      const b=this.ball;
-      ctx.shadowColor="rgba(103,232,249,.55)";
-      ctx.shadowBlur=18;
-      ctx.fillStyle="rgba(234,240,255,1)";
-      ctx.beginPath(); ctx.arc(b.x,b.y,b.r,0,Math.PI*2); ctx.fill();
+      // lasers
+      ctx.fillStyle="rgba(251,113,133,.95)";
+      for(const l of this.lasers){
+        ctx.fillRect(l.x-2,l.y-14,4,14);
+      }
+
+      // balls
+      for(const b of this.balls){
+        ctx.shadowColor="rgba(103,232,249,.55)";
+        ctx.shadowBlur=16;
+        ctx.fillStyle="rgba(234,240,255,1)";
+        ctx.beginPath(); ctx.arc(b.x,b.y,b.r,0,Math.PI*2); ctx.fill();
+      }
       ctx.shadowBlur=0;
     }
 
@@ -1019,7 +1189,9 @@
       const t=performance.now();
       const dt=Math.min(0.033,(t-this.lastT)/1000);
       this.lastT=t;
-      this.step(dt);
+      if(this.state!=="PAUSED"){
+        this.step(dt);
+      }
       this.draw();
       this.syncHud();
       requestAnimationFrame(()=>this.loop());
@@ -1033,7 +1205,7 @@
   }
 
   // ===== Online (stable Firestore sync) =====
-  const CLIENT_KEY="bb_client_id_v2";
+  const CLIENT_KEY="bb_client_id_v50";
   function getClientId(){
     let id=localStorage.getItem(CLIENT_KEY);
     if(!id){
@@ -1052,10 +1224,9 @@
 
       this.stage=1;
       this.seed=12345;
-
       this.game=null;
 
-      this.you={score:0,lives:DIFF[difficulty].lives,left:0,done:false};
+      this.you={score:0,lives:DIFF[difficulty].lives,left:0,done:false,laser:0};
       this.opp={score:0,lives:DIFF[difficulty].lives,left:0,done:false};
 
       this.ui={
@@ -1063,6 +1234,7 @@
         youScore: document.getElementById("youScore"),
         youLives: document.getElementById("youLives"),
         youLeft: document.getElementById("youLeft"),
+        youLaser: document.getElementById("youLaser"),
         oppScore: document.getElementById("oppScore"),
         oppLives: document.getElementById("oppLives"),
         oppLeft: document.getElementById("oppLeft"),
@@ -1071,15 +1243,16 @@
       };
 
       this.holdL=false; this.holdR=false;
-      const onLeft=document.getElementById("onLeftBtn");
-      const onRight=document.getElementById("onRightBtn");
       const bindHold=(el,which)=>{
         el.addEventListener("pointerdown",(e)=>{e.preventDefault(); if(which==="L")this.holdL=true; else this.holdR=true; el.setPointerCapture?.(e.pointerId);},{passive:false});
         el.addEventListener("pointerup",(e)=>{e.preventDefault(); if(which==="L")this.holdL=false; else this.holdR=false;},{passive:false});
         el.addEventListener("pointercancel",()=>{ if(which==="L")this.holdL=false; else this.holdR=false;});
         el.addEventListener("pointerleave",()=>{ if(which==="L")this.holdL=false; else this.holdR=false;});
       };
-      bindHold(onLeft,"L"); bindHold(onRight,"R");
+      bindHold(document.getElementById("onLeftBtn"),"L");
+      bindHold(document.getElementById("onRightBtn"),"R");
+
+      document.getElementById("onLaserBtn").onclick=()=>this.game?.fireLaser?.();
 
       document.getElementById("onBtnPause").onclick=()=>this.game?.togglePause?.();
       document.getElementById("onBtnRestart").onclick=()=>this.resetLocalRun(true);
@@ -1087,7 +1260,7 @@
       document.getElementById("onBtnHost").onclick=()=>{ this.role="host"; toast("Hostにした"); beep(620,0.05,"triangle",0.06); };
       document.getElementById("onBtnJoin").onclick=()=>{ this.role="join"; toast("Joinにした"); beep(620,0.05,"triangle",0.06); };
       document.getElementById("onBtnConnect").onclick=()=>this.connect();
-      document.getElementById("onBtnStart").onclick=()=>this.startWhenReady();
+      document.getElementById("onBtnStart").onclick=()=>this.startNow();
     }
 
     stop(){
@@ -1114,9 +1287,9 @@
 
       try{
         if(this.role==="host"){
-          const seed = (hashStr(room) ^ (Date.now() & 0xffffffff))>>>0;
-          this.seed = seed;
+          // 合言葉＋現在選択ステージで初期化
           this.stage = selectedStage;
+          this.seed  = (hashStr(room) ^ (this.stage*0x9e3779b9))>>>0;
 
           await setDoc(roomRef,{
             status:"waiting",
@@ -1136,7 +1309,7 @@
           }
         }
 
-        // mergeで自分を登録（updateDoc失敗を避ける）
+        // 自分を登録（merge）
         await setDoc(roomRef,{
           players:{
             [clientId]:{
@@ -1151,13 +1324,15 @@
           }
         },{merge:true});
 
+        // 監視
         try{ this.unsub?.(); }catch{}
         this.unsub = onSnapshot(roomRef, (s)=>{
           const d=s.data();
           if(!d) return;
 
+          // Hostが決めた設定に合わせる
           this.stage = d.stage ?? this.stage;
-          this.seed = (d.seed ?? this.seed)>>>0;
+          this.seed  = (d.seed ?? this.seed)>>>0;
           if(d.diff && d.diff!==difficulty) applyDifficulty(d.diff);
 
           this.ui.onStageLabel.textContent=String(this.stage);
@@ -1169,6 +1344,7 @@
             this.you.lives=me.lives|0;
             this.you.left=me.left|0;
             this.you.done=!!me.done;
+            this.you.laser=me.laser|0;
           }
 
           let opp=null;
@@ -1188,21 +1364,23 @@
           this.ui.youScore.textContent=String(this.you.score);
           this.ui.youLives.textContent=String(this.you.lives);
           this.ui.youLeft.textContent=String(this.you.left);
+          this.ui.youLaser.textContent=String(this.you.laser);
           this.ui.oppScore.textContent=String(this.opp.score);
           this.ui.oppLives.textContent=String(this.opp.lives);
           this.ui.oppLeft.textContent=String(this.opp.left);
 
           const count = Object.keys(players).length;
-          this.ui.msg.textContent = (count>=2)
-            ? "相手が入室しました。開始できます。"
-            : "相手の入室待ち…（もう1人が同じ合言葉でJoin）";
+          this.ui.msg.textContent =
+            `入室OK。相手: ${count>=2?"いる":"待ち"} / 「開始」はいつでもOK`;
 
+          // ローカルゲームを必ず起動
           if(!this.game){
             this.setupLocalRun();
             this.ui.overlay.classList.remove("on");
-            toast("入室OK（準備完了）");
+            toast("入室OK");
           }
 
+          // 終了判定
           if(this.game && (this.you.done || this.opp.done)){
             this.finishOnlineMatch();
           }
@@ -1214,62 +1392,65 @@
         console.error(e);
         const msg = (e && e.message) ? e.message : String(e);
         this.ui.msg.textContent = "入室に失敗: " + msg;
-        toast("入室失敗（console見て）");
+        toast("入室失敗（console）");
       }
     }
 
     setupLocalRun(){
-      this.game = new LocalGame("canvasOnline", "onOverlay", {
+      this.game = new GameCore("canvasOnline", "onOverlay", {
         score: document.getElementById("youScore"),
         lives: document.getElementById("youLives"),
         left: document.getElementById("youLeft"),
+        laser: document.getElementById("youLaser"),
         stage: null
       });
+
       this.game.stage = this.stage;
       this.game.seedBase = this.seed;
 
+      // 入力接続（スマホボタン）
       const origStep = this.game.step.bind(this.game);
       this.game.step = (dt)=>{
         this.game.holdL = this.holdL;
         this.game.holdR = this.holdR;
         origStep(dt);
+        this.pushMyState(false);
       };
 
       this.game.onClear = ()=>{
         this.you.done=true;
+        this.pushMyState(true);
         beep(900,0.10,"triangle",0.10);
       };
 
-      this.ui.msg.textContent="入室完了。相手が揃ったら開始。";
+      // ★これが無いと「オンラインでブロック出ない」
+      this.game.start();
+      this.resetLocalRun(false);
+
+      this.ui.msg.textContent="入室完了。開始でスタート。";
     }
 
-    async startWhenReady(){
+    async startNow(){
       if(!this.roomId){ toast("先に入室"); return; }
-      const roomRef = doc(db,"rooms", this.roomId);
-      const snap=await getDoc(roomRef);
-      if(!snap.exists()){ toast("部屋がない"); return; }
-      const d=snap.data();
-      const players=d.players||{};
-      if(Object.keys(players).length < 2){
-        toast("相手がまだ入室してない");
-        return;
-      }
-      await setDoc(roomRef,{ status:"playing", startedAt: Date.now() },{merge:true});
-      toast("開始！");
+      if(!this.game){ this.setupLocalRun(); }
+      this.ui.overlay.classList.remove("on");
       this.resetLocalRun(false);
       this.game.startOrServe();
+      toast("開始！");
     }
 
     async resetLocalRun(push){
       if(!this.game) return;
+
       this.game.score=0;
       this.game.lives=DIFF[difficulty].lives;
+      this.game.laserAmmo=0;
       this.game.stage=this.stage;
       this.game.seedBase=this.seed;
+
       this.you.done=false;
 
-      this.game.bricks=[];
-      this.game.ball=null; this.game.paddle=null;
+      this.game.balls=[]; this.game.drops=[]; this.game.lasers=[]; this.game.bricks=[];
       this.game.state="READY";
       this.game.layout(false);
       this.game.showOverlay("準備OK","Space（またはタップ）で開始",true);
@@ -1281,32 +1462,36 @@
       if(!this.roomId || !this.game) return;
       const now=Date.now();
       if(!force){
-        if(this._lastPush && now-this._lastPush < 250) return;
+        if(this._lastPush && now-this._lastPush < 180) return;
       }
       this._lastPush=now;
 
-      const left = this.game.bricks.length|0;
+      const left  = this.game.bricks.length|0;
       const lives = this.game.lives|0;
       const score = this.game.score|0;
-      const done = !!this.you.done;
+      const done  = !!this.you.done;
+      const laser = this.game.laserAmmo|0;
 
       try{
         await setDoc(doc(db,"rooms",this.roomId),{
           players:{
-            [clientId]:{ score, lives, left, done, t: now }
+            [clientId]:{ score, lives, left, done, laser, t: now }
           }
         },{merge:true});
       }catch{}
     }
 
     async finishOnlineMatch(){
-      // 動き停止
-      if(this.game && this.game.state==="RUNNING") this.game.togglePause();
+      if(this._finished) return;
+      if(!this.game) return;
 
+      // 片方だけdoneになるケースがあるので少し待っても良いが、ここは即判定
+      this._finished=true;
+
+      let result="結果";
       const youDone=this.you.done;
       const oppDone=this.opp.done;
 
-      let result="結果";
       if(youDone && !oppDone) result="あなたの勝ち！";
       else if(!youDone && oppDone) result="あなたの負け…";
       else {
@@ -1320,6 +1505,8 @@
       ov.querySelector("h2").textContent=result;
       ov.querySelector("p").textContent=`YOU ${this.you.score} / OPP ${this.opp.score}\n名前を入れてランキング登録できます。`;
 
+      beep(result.includes("勝ち")?980:220,0.10,"square",0.08);
+
       try{
         await submitRanking({mode:"ONLINE", diff:difficulty, stage:this.stage, score:this.you.score});
       }catch{}
@@ -1332,11 +1519,10 @@
     lives: document.getElementById("stageLives"),
     stage: document.getElementById("stageLabel"),
     left: document.getElementById("stageLeft"),
+    laser: document.getElementById("stageLaser"),
   };
 
-  // touch hold for stage
-  const stageLeftBtn=document.getElementById("stageLeftBtn");
-  const stageRightBtn=document.getElementById("stageRightBtn");
+  // touch hold
   function bindHold(el, cbDown, cbUp){
     el.addEventListener("pointerdown",(e)=>{e.preventDefault(); cbDown(); el.setPointerCapture?.(e.pointerId);},{passive:false});
     el.addEventListener("pointerup",(e)=>{e.preventDefault(); cbUp();},{passive:false});
@@ -1350,15 +1536,17 @@
     applyDifficulty(parseInt(difficultySel.value,10));
     showScreen("stage");
 
-    const g=new LocalGame("canvasStage","stageOverlay",stageHUD);
+    const g=new GameCore("canvasStage","stageOverlay",stageHUD);
     g.stage=selectedStage;
     g.seedBase = hashStr("stage-local") ^ 0x9e3779b9;
 
-    bindHold(stageLeftBtn, ()=>g.holdL=true, ()=>g.holdL=false);
-    bindHold(stageRightBtn, ()=>g.holdR=true, ()=>g.holdR=false);
+    bindHold(document.getElementById("stageLeftBtn"), ()=>g.holdL=true, ()=>g.holdL=false);
+    bindHold(document.getElementById("stageRightBtn"),()=>g.holdR=true, ()=>g.holdR=false);
+    document.getElementById("stageLaserBtn").onclick=()=>g.fireLaser();
 
     g.onClear=async ()=>{
-      g.score += 500;
+      // クリアボーナス
+      g.score += 700 + Math.floor(g.stage*8);
       setBest(g.stage, g.score);
       if(g.stage < STAGE_COUNT) unlockStage(g.stage+1);
 
@@ -1368,21 +1556,20 @@
       if(g.stage >= STAGE_COUNT){
         g.showOverlay("全ステージクリア！",`スコア: ${g.score}\nメニューへ戻れます`,true);
         g.state="READY";
-        g.ball.stuck=true;
+        for(const b of g.balls) b.stuck=true;
         return;
       }
 
+      // 次ステージへ自動
       g.stage += 1;
       selectedStage = g.stage;
       renderStageGrid();
 
-      g.bricks=[];
-      g.ball=null; g.paddle=null;
+      g.balls=[]; g.drops=[]; g.lasers=[]; g.bricks=[];
       g.state="READY";
       g.layout(false);
 
-      const t=stageTheme(g.stage);
-      g.showOverlay(`次へ！ STAGE ${g.stage} (${t.name})`,`Space（またはタップ）で開始`,true);
+      g.showOverlay(`次へ！ STAGE ${g.stage}`,`Space（またはタップ）で開始`,true);
       beep(900,0.10,"triangle",0.10);
     };
 
@@ -1402,23 +1589,16 @@
     const room=new OnlineRoom();
     activeGame=room;
     room.ui.overlay.classList.add("on");
+    // laser btn
+    document.getElementById("onLaserBtn").onclick=()=>room.game?.fireLaser?.();
   };
 
-  // ===== Menu load =====
+  // ===== Init =====
   renderStageGrid();
   renderRank();
 
-  // Online: push my state periodically
-  setInterval(()=>{
-    if(activeGame instanceof OnlineRoom){
-      if(activeGame.game){
-        activeGame.pushMyState(false);
-      }
-    }
-  }, 200);
-
-  // ===== Esc helper =====
-  window.addEventListener("beforeunload",()=>{ try{ activeGame?.stop?.(); }catch{} });
+  // ===== Global fire for activeGame =====
+  // （Space/Pはすでに keydownで activeGame に投げてる）
 </script>
 </body>
 </html>
