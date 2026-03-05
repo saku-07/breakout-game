@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>ブロック崩し （オンライン/50ステージ/パワーアップ/ランキング）</title>
+  <title>ブロック崩し：オンライン/50ステージ/ランキング/パワーアップ</title>
   <style>
     :root{
       --bg0:#050814; --bg1:#0b1738;
@@ -24,10 +24,8 @@
       user-select:none; -webkit-user-select:none; -webkit-touch-callout:none;
       touch-action: manipulation;
     }
-
     .screen{position:fixed; inset:0; display:none; padding:clamp(10px,2vw,18px); gap:12px;}
     .screen.active{display:flex; flex-direction:column;}
-
     .glass{
       background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.06));
       border:1px solid var(--line);
@@ -50,7 +48,6 @@
     .brand h1{margin:0; font-size:15px; font-weight:1000; letter-spacing:.2px; line-height:1.1;}
     .brand small{display:block; margin-top:2px; font-size:12px; color:var(--muted); font-weight:900;}
     .headerRight{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; align-items:center;}
-
     .pill{
       display:flex; align-items:center; gap:8px;
       padding:8px 10px; border:1px solid var(--line);
@@ -58,7 +55,6 @@
       font-weight:1000; font-size:12px;
     }
     .dot{width:8px;height:8px;border-radius:99px;background:var(--a); box-shadow:0 0 18px rgba(103,232,249,.6)}
-
     .btn{
       appearance:none; border:none; cursor:pointer;
       padding:10px 12px; border-radius:14px;
@@ -242,7 +238,7 @@
         <b style="color:var(--a)">PC</b><br/>
         ・移動：<span class="kbd">←</span><span class="kbd">→</span><br/>
         ・開始：<span class="kbd">Space</span>　・一時停止：<span class="kbd">P</span>　・メニュー：<span class="kbd">Esc</span><br/>
-        ・レーザー（アイテム取得時）：<span class="kbd">F</span>
+        ・レーザー：<span class="kbd">F</span>（所持時）
       </div>
       <div class="mobileOnly hint">
         <b style="color:var(--a)">スマホ</b><br/>
@@ -260,8 +256,8 @@
       <div class="hint" style="margin-top:12px; opacity:.92">
         <b style="color:var(--b)">オンライン対戦（超安定）</b><br/>
         ・Host/Join + 合言葉だけ。<br/>
-        ・同じステージ/同じ配置でプレイ → Firestoreでスコア同期 → 勝敗。<br/>
-        ・相手がいなくても開始OK（練習にも使える）。
+        ・同期：スコア/残り/ライフ/クリア/レーザー。<br/>
+        ・相手スコアが「必ず見える」ように同期を強化済み。
       </div>
     </div>
   </div>
@@ -302,8 +298,8 @@
 
     <div class="overlay on" id="stageOverlay">
       <div class="modal">
-        <h2 id="stageModalTitle">準備OK</h2>
-        <p id="stageModalText">Space（またはタップ）で開始</p>
+        <h2>準備OK</h2>
+        <p>Space（またはタップ）で開始</p>
         <div class="actions">
           <button class="btn" id="stageModalStart">開始</button>
           <button class="btn secondary" id="stageModalMenu">メニューへ</button>
@@ -342,8 +338,12 @@
 
     <div class="hud">
       <div class="hudLeft">
-        <div class="pill"><span class="dot"></span> YOU: <span id="youScore">0</span> / LIFE <span id="youLives">3</span> / LEFT <span id="youLeft">0</span> / LASER <span id="youLaser">0</span></div>
-        <div class="pill"><span class="dot" style="background:var(--b)"></span> OPP: <span id="oppScore">0</span> / LIFE <span id="oppLives">3</span> / LEFT <span id="oppLeft">0</span></div>
+        <div class="pill"><span class="dot"></span>
+          YOU: <span id="youScore">0</span> / LIFE <span id="youLives">3</span> / LEFT <span id="youLeft">0</span> / LASER <span id="youLaser">0</span>
+        </div>
+        <div class="pill"><span class="dot" style="background:var(--b)"></span>
+          OPP: <span id="oppScore">0</span> / LIFE <span id="oppLives">3</span> / LEFT <span id="oppLeft">0</span>
+        </div>
       </div>
       <div class="hudRight hudBtnRow">
         <button class="btn secondary" id="onBtnPause">一時停止</button>
@@ -354,7 +354,7 @@
     <div class="overlay on" id="onOverlay">
       <div class="modal">
         <h2>合言葉オンライン</h2>
-        <p id="onMsg">Host/Join を選択 → 合言葉 → 入室。開始はいつでもOK。</p>
+        <p id="onMsg">Host/Join → 合言葉 → 入室。相手が入ったら両方開始。</p>
 
         <div class="twoCols">
           <button class="btn ok" id="onBtnHost">Host（親）</button>
@@ -372,8 +372,8 @@
         </div>
 
         <div class="hint" style="margin-top:10px; opacity:.9">
-          ・同じ合言葉＝同じステージ/同じブロック。<br/>
-          ・同期はスコア/残り/ライフ/クリア。
+          ・相手のスコアが見えない問題：同期を強化済み。<br/>
+          ・テザリングでもOK（P2Pなし）。
         </div>
       </div>
     </div>
@@ -396,7 +396,7 @@
     serverTimestamp
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  // あなたの設定
+  // あなたのFirebase設定
   const firebaseConfig = {
     apiKey: "AIzaSyDveiQpRF1O-j3b5YQ5AU1XXh0WxbnIvfE",
     authDomain: "blockgame-25fcf.firebaseapp.com",
@@ -405,6 +405,7 @@
     messagingSenderId: "687633508213",
     appId: "1:687633508213:web:ee32069ed5d91a2a00553c"
   };
+
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
@@ -464,9 +465,9 @@
     3:{lives:2, hardChance:0.35, speed:470, paddleScale:0.92, dropRate:0.14},
   };
 
-  // ===== Stages (50) =====
+  // ===== Stages =====
   const STAGE_COUNT=50;
-  const PROG_KEY="bb_stage_progress_v50";
+  const PROG_KEY="bb_stage_progress_v50_final";
   function loadProgress(){
     try{
       const obj=JSON.parse(localStorage.getItem(PROG_KEY)||"{}");
@@ -527,7 +528,7 @@
     }
   }
 
-  // ===== UI / Navigation =====
+  // ===== UI =====
   const screenMenu=document.getElementById("screenMenu");
   const screenStage=document.getElementById("screenStage");
   const screenOnline=document.getElementById("screenOnline");
@@ -556,7 +557,7 @@
   document.getElementById("btnHow").onclick=()=>{
     const isMobile = matchMedia("(pointer: coarse)").matches || innerWidth<=920;
     if(isMobile){
-      alert("スマホ操作\n・ドラッグでバー移動\n・下の◀▶でも移動\n・開始：タップ or 開始ボタン\n・一時停止：画面の一時停止\n・レーザー：LASERボタン（所持時）\n・メニュー：メニュー");
+      alert("スマホ操作\n・ドラッグでバー移動\n・下の◀▶でも移動\n・開始：タップ\n・一時停止：画面の一時停止\n・レーザー：LASERボタン（所持時）\n・メニュー：メニュー");
     }else{
       alert("PC操作\n・移動：← →\n・開始：Space\n・一時停止：P\n・メニュー：Esc\n・レーザー：F（所持時）");
     }
@@ -617,7 +618,7 @@
     }
   }
 
-  // ===== Stage Theme / Brick Patterns =====
+  // ===== Stage bricks =====
   function stageTheme(stage){
     const palette=[
       {h:185, shape:"rect"}, {h:210, shape:"capsule"}, {h:255, shape:"rect"}, {h:170, shape:"diamond"},
@@ -774,14 +775,13 @@
     return "rgba(255,255,255,.9)";
   }
 
-  // ===== Local/Online shared Game Engine =====
+  // ===== GameCore =====
   class GameCore{
-    constructor(canvasId, overlayId, hud, opts){
+    constructor(canvasId, overlayId, hud){
       this.canvas=document.getElementById(canvasId);
       this.ctx=this.canvas.getContext("2d",{alpha:false});
       this.overlay=document.getElementById(overlayId);
       this.hud=hud;
-      this.opts=opts||{};
 
       this.viewport={w:800,h:600,dpr:1};
       this.pointer={down:false,x:0,y:0};
@@ -872,7 +872,6 @@
         const rng = mulberry32(seed);
         this.bricks = buildStageBricks(this.stage, this.court, rng);
       }
-
       this.syncHud();
     }
 
@@ -890,13 +889,12 @@
     }
 
     syncHud(){
-      if(this.hud){
-        this.hud.score.textContent=String(this.score|0);
-        this.hud.lives.textContent=String(this.lives|0);
-        if(this.hud.stage) this.hud.stage.textContent=String(this.stage|0);
-        if(this.hud.left) this.hud.left.textContent=String(this.bricks.length|0);
-        if(this.hud.laser) this.hud.laser.textContent=String(this.laserAmmo|0);
-      }
+      if(!this.hud) return;
+      this.hud.score.textContent=String(this.score|0);
+      this.hud.lives.textContent=String(this.lives|0);
+      if(this.hud.stage) this.hud.stage.textContent=String(this.stage|0);
+      if(this.hud.left)  this.hud.left.textContent=String(this.bricks.length|0);
+      if(this.hud.laser) this.hud.laser.textContent=String(this.laserAmmo|0);
     }
 
     showOverlay(title,text,on=true){
@@ -972,11 +970,9 @@
     }
 
     step(dt){
-      // timers
       this._wideTimer=Math.max(0,this._wideTimer-dt);
       this._slowTimer=Math.max(0,this._slowTimer-dt);
 
-      // move paddle
       const speed=560;
       const move=((input.right?1:0)-(input.left?1:0)) + ((this.holdR?1:0)-(this.holdL?1:0));
       if(this.pointer.down) this.paddle.x=this.pointer.x;
@@ -985,13 +981,8 @@
       const pad=this.paddle.w/2;
       this.paddle.x=clamp(this.paddle.x, this.court.x+pad, this.court.x+this.court.w-pad);
 
-      // fire (PC)
-      if(input.fire){
-        input.fire=false;
-        this.fireLaser();
-      }
+      if(input.fire){ input.fire=false; this.fireLaser(); }
 
-      // update balls
       const sp=this.baseSpeed();
       const pbox={x:this.paddle.x-this.paddle.w/2,y:this.paddle.y-this.paddle.h/2,w:this.paddle.w,h:this.paddle.h};
 
@@ -1002,7 +993,6 @@
         }
         if(this.state!=="RUNNING") continue;
 
-        // normalize speed a bit
         const cur=Math.hypot(b.vx,b.vy);
         if(cur>0){
           const target=sp;
@@ -1018,7 +1008,6 @@
         if(b.y-b.r < this.court.y){ b.y=this.court.y+b.r; b.vy*=-1; }
 
         if(b.vy>0 && ballAABB(b,b.r,pbox)){
-          // reflect with angle
           const hit=(b.x-this.paddle.x)/(this.paddle.w/2);
           const ang=clamp(hit,-1,1)*(Math.PI*0.36);
           const sp2=Math.hypot(b.vx,b.vy);
@@ -1028,7 +1017,6 @@
           beep(560,0.05,"triangle",0.06);
         }
 
-        // brick collisions (1 per frame per ball)
         for(let i=this.bricks.length-1;i>=0;i--){
           const br=this.bricks[i];
           const box={x:br.x,y:br.y,w:br.w,h:br.h};
@@ -1042,7 +1030,6 @@
             const gain = (br.hp<=0)?140:50;
             this.score += gain;
 
-            // drop
             if(br.hp<=0){
               const rng=mulberry32(((this.seedBase^this.stage) + i*97)>>>0);
               const rate=DIFF[difficulty].dropRate;
@@ -1060,13 +1047,11 @@
         }
       }
 
-      // lasers
       if(this.state==="RUNNING"){
         for(let i=this.lasers.length-1;i>=0;i--){
           const l=this.lasers[i];
           l.y += l.vy*dt;
           if(l.y < this.court.y-30){ this.lasers.splice(i,1); continue; }
-          // hit brick
           for(let j=this.bricks.length-1;j>=0;j--){
             const br=this.bricks[j];
             if(l.x>=br.x && l.x<=br.x+br.w && l.y>=br.y && l.y<=br.y+br.h){
@@ -1081,14 +1066,11 @@
         }
       }
 
-      // drops
       if(this.state==="RUNNING"){
         for(let i=this.drops.length-1;i>=0;i--){
           const d=this.drops[i];
           d.y += d.vy*dt;
-          // catch
-          const px=this.paddle.x, pw=this.paddle.w;
-          const py=this.paddle.y;
+          const px=this.paddle.x, pw=this.paddle.w, py=this.paddle.y;
           if(d.y > py-14 && d.y < py+14 && d.x > px-pw/2 && d.x < px+pw/2){
             this.applyPowerup(d.type);
             this.score += 80;
@@ -1101,7 +1083,6 @@
         }
       }
 
-      // ball out (remove)
       for(let i=this.balls.length-1;i>=0;i--){
         const b=this.balls[i];
         if(!b.stuck && b.y-b.r > this.court.y+this.court.h){
@@ -1109,7 +1090,6 @@
         }
       }
 
-      // if all balls lost
       if(this.state==="RUNNING" && this.balls.length===0){
         this.lives -= 1;
         beep(160,0.10,"sine",0.08);
@@ -1123,7 +1103,6 @@
         this.showOverlay("ミス！", `残りライフ: ${this.lives}\nSpaceで再開`, true);
       }
 
-      // clear
       if(this.bricks.length===0){
         if(this.state==="RUNNING"){
           this.state="READY";
@@ -1138,16 +1117,13 @@
       const {w,h}=this.viewport;
       ctx.clearRect(0,0,w,h);
 
-      // court
       ctx.strokeStyle="rgba(255,255,255,.16)";
       ctx.lineWidth=1;
       roundRect(ctx,this.court.x,this.court.y,this.court.w,this.court.h,16);
       ctx.stroke();
 
-      // bricks
       for(const br of this.bricks) drawBrick(ctx,br);
 
-      // drops
       for(const d of this.drops){
         ctx.fillStyle=puColor(d.type);
         ctx.beginPath();
@@ -1159,7 +1135,6 @@
         ctx.fillText(d.type[0], d.x, d.y+3);
       }
 
-      // paddle
       const p=this.paddle;
       const g=ctx.createLinearGradient(p.x-p.w/2,p.y,p.x+p.w/2,p.y);
       g.addColorStop(0, "rgba(103,232,249,.95)");
@@ -1168,13 +1143,11 @@
       roundRect(ctx,p.x-p.w/2,p.y-p.h/2,p.w,p.h,999);
       ctx.fill();
 
-      // lasers
       ctx.fillStyle="rgba(251,113,133,.95)";
       for(const l of this.lasers){
         ctx.fillRect(l.x-2,l.y-14,4,14);
       }
 
-      // balls
       for(const b of this.balls){
         ctx.shadowColor="rgba(103,232,249,.55)";
         ctx.shadowBlur=16;
@@ -1189,9 +1162,7 @@
       const t=performance.now();
       const dt=Math.min(0.033,(t-this.lastT)/1000);
       this.lastT=t;
-      if(this.state!=="PAUSED"){
-        this.step(dt);
-      }
+      if(this.state!=="PAUSED") this.step(dt);
       this.draw();
       this.syncHud();
       requestAnimationFrame(()=>this.loop());
@@ -1204,8 +1175,8 @@
     }
   }
 
-  // ===== Online (stable Firestore sync) =====
-  const CLIENT_KEY="bb_client_id_v50";
+  // ===== Online =====
+  const CLIENT_KEY="bb_client_id_v50_final";
   function getClientId(){
     let id=localStorage.getItem(CLIENT_KEY);
     if(!id){
@@ -1219,7 +1190,7 @@
   class OnlineRoom{
     constructor(){
       this.roomId="";
-      this.role=null; // host/join
+      this.role=null;
       this.unsub=null;
 
       this.stage=1;
@@ -1243,6 +1214,7 @@
       };
 
       this.holdL=false; this.holdR=false;
+
       const bindHold=(el,which)=>{
         el.addEventListener("pointerdown",(e)=>{e.preventDefault(); if(which==="L")this.holdL=true; else this.holdR=true; el.setPointerCapture?.(e.pointerId);},{passive:false});
         el.addEventListener("pointerup",(e)=>{e.preventDefault(); if(which==="L")this.holdL=false; else this.holdR=false;},{passive:false});
@@ -1251,7 +1223,6 @@
       };
       bindHold(document.getElementById("onLeftBtn"),"L");
       bindHold(document.getElementById("onRightBtn"),"R");
-
       document.getElementById("onLaserBtn").onclick=()=>this.game?.fireLaser?.();
 
       document.getElementById("onBtnPause").onclick=()=>this.game?.togglePause?.();
@@ -1260,7 +1231,7 @@
       document.getElementById("onBtnHost").onclick=()=>{ this.role="host"; toast("Hostにした"); beep(620,0.05,"triangle",0.06); };
       document.getElementById("onBtnJoin").onclick=()=>{ this.role="join"; toast("Joinにした"); beep(620,0.05,"triangle",0.06); };
       document.getElementById("onBtnConnect").onclick=()=>this.connect();
-      document.getElementById("onBtnStart").onclick=()=>this.startNow();
+      document.getElementById("onBtnStart").onclick=()=>this.startWhenReady();
     }
 
     stop(){
@@ -1287,7 +1258,6 @@
 
       try{
         if(this.role==="host"){
-          // 合言葉＋現在選択ステージで初期化
           this.stage = selectedStage;
           this.seed  = (hashStr(room) ^ (this.stage*0x9e3779b9))>>>0;
 
@@ -1309,7 +1279,6 @@
           }
         }
 
-        // 自分を登録（merge）
         await setDoc(roomRef,{
           players:{
             [clientId]:{
@@ -1319,18 +1288,18 @@
               lives:DIFF[difficulty].lives,
               left:0,
               done:false,
+              laser:0,
               t: Date.now()
             }
           }
         },{merge:true});
 
-        // 監視
         try{ this.unsub?.(); }catch{}
         this.unsub = onSnapshot(roomRef, (s)=>{
           const d=s.data();
           if(!d) return;
 
-          // Hostが決めた設定に合わせる
+          // hostに合わせる
           this.stage = d.stage ?? this.stage;
           this.seed  = (d.seed ?? this.seed)>>>0;
           if(d.diff && d.diff!==difficulty) applyDifficulty(d.diff);
@@ -1338,6 +1307,8 @@
           this.ui.onStageLabel.textContent=String(this.stage);
 
           const players=d.players||{};
+
+          // me
           const me=players[clientId];
           if(me){
             this.you.score=me.score|0;
@@ -1347,6 +1318,7 @@
             this.you.laser=me.laser|0;
           }
 
+          // opp（★ここが「相手スコア見えない」の要）
           let opp=null;
           for(const [pid,pv] of Object.entries(players)){
             if(pid===clientId) continue;
@@ -1355,43 +1327,43 @@
           if(opp){
             this.opp.score=opp.score|0;
             this.opp.lives=opp.lives|0;
-            this.opp.left=opp.left|0;
-            this.opp.done=!!opp.done;
+            this.opp.left =opp.left|0;
+            this.opp.done =!!opp.done;
           }else{
             this.opp={score:0,lives:DIFF[difficulty].lives,left:0,done:false};
           }
 
+          // UI反映（★必ず更新）
           this.ui.youScore.textContent=String(this.you.score);
           this.ui.youLives.textContent=String(this.you.lives);
-          this.ui.youLeft.textContent=String(this.you.left);
+          this.ui.youLeft.textContent =String(this.you.left);
           this.ui.youLaser.textContent=String(this.you.laser);
+
           this.ui.oppScore.textContent=String(this.opp.score);
           this.ui.oppLives.textContent=String(this.opp.lives);
-          this.ui.oppLeft.textContent=String(this.opp.left);
+          this.ui.oppLeft.textContent =String(this.opp.left);
 
           const count = Object.keys(players).length;
           this.ui.msg.textContent =
-            `入室OK。相手: ${count>=2?"いる":"待ち"} / 「開始」はいつでもOK`;
+            (count>=2) ? "相手が入室しました。開始できます。" : "相手の入室待ち…（同じ合言葉でJoin）";
 
-          // ローカルゲームを必ず起動
+          // ★ローカルゲームを確実に起動
           if(!this.game){
             this.setupLocalRun();
             this.ui.overlay.classList.remove("on");
             toast("入室OK");
           }
 
-          // 終了判定
+          // 終了
           if(this.game && (this.you.done || this.opp.done)){
             this.finishOnlineMatch();
           }
         });
 
         beep(760,0.05,"triangle",0.06);
-
       }catch(e){
         console.error(e);
-        const msg = (e && e.message) ? e.message : String(e);
-        this.ui.msg.textContent = "入室に失敗: " + msg;
+        this.ui.msg.textContent = "入室に失敗: " + (e?.message ?? String(e));
         toast("入室失敗（console）");
       }
     }
@@ -1400,7 +1372,7 @@
       this.game = new GameCore("canvasOnline", "onOverlay", {
         score: document.getElementById("youScore"),
         lives: document.getElementById("youLives"),
-        left: document.getElementById("youLeft"),
+        left : document.getElementById("youLeft"),
         laser: document.getElementById("youLaser"),
         stage: null
       });
@@ -1408,12 +1380,13 @@
       this.game.stage = this.stage;
       this.game.seedBase = this.seed;
 
-      // 入力接続（スマホボタン）
+      // 入力＆「確実push」
       const origStep = this.game.step.bind(this.game);
       this.game.step = (dt)=>{
         this.game.holdL = this.holdL;
         this.game.holdR = this.holdR;
         origStep(dt);
+        // ★毎フレーム軽くpush（スロットル内）
         this.pushMyState(false);
       };
 
@@ -1423,16 +1396,18 @@
         beep(900,0.10,"triangle",0.10);
       };
 
-      // ★これが無いと「オンラインでブロック出ない」
+      // ★これが無いとオンラインで動かない
       this.game.start();
       this.resetLocalRun(false);
 
       this.ui.msg.textContent="入室完了。開始でスタート。";
     }
 
-    async startNow(){
+    async startWhenReady(){
       if(!this.roomId){ toast("先に入室"); return; }
       if(!this.game){ this.setupLocalRun(); }
+
+      // 相手がいなくても開始できる仕様（練習OK）
       this.ui.overlay.classList.remove("on");
       this.resetLocalRun(false);
       this.game.startOrServe();
@@ -1460,9 +1435,10 @@
 
     async pushMyState(force){
       if(!this.roomId || !this.game) return;
+
       const now=Date.now();
       if(!force){
-        if(this._lastPush && now-this._lastPush < 180) return;
+        if(this._lastPush && now-this._lastPush < 150) return;
       }
       this._lastPush=now;
 
@@ -1474,18 +1450,13 @@
 
       try{
         await setDoc(doc(db,"rooms",this.roomId),{
-          players:{
-            [clientId]:{ score, lives, left, done, laser, t: now }
-          }
+          players:{ [clientId]:{ score, lives, left, done, laser, t: now } }
         },{merge:true});
       }catch{}
     }
 
     async finishOnlineMatch(){
       if(this._finished) return;
-      if(!this.game) return;
-
-      // 片方だけdoneになるケースがあるので少し待っても良いが、ここは即判定
       this._finished=true;
 
       let result="結果";
@@ -1513,7 +1484,7 @@
     }
   }
 
-  // ===== Stage screen wiring =====
+  // ===== Stage wiring =====
   const stageHUD={
     score: document.getElementById("stageScore"),
     lives: document.getElementById("stageLives"),
@@ -1522,7 +1493,6 @@
     laser: document.getElementById("stageLaser"),
   };
 
-  // touch hold
   function bindHold(el, cbDown, cbUp){
     el.addEventListener("pointerdown",(e)=>{e.preventDefault(); cbDown(); el.setPointerCapture?.(e.pointerId);},{passive:false});
     el.addEventListener("pointerup",(e)=>{e.preventDefault(); cbUp();},{passive:false});
@@ -1545,12 +1515,10 @@
     document.getElementById("stageLaserBtn").onclick=()=>g.fireLaser();
 
     g.onClear=async ()=>{
-      // クリアボーナス
       g.score += 700 + Math.floor(g.stage*8);
       setBest(g.stage, g.score);
       if(g.stage < STAGE_COUNT) unlockStage(g.stage+1);
 
-      // ランキング登録（ステージ）
       try{ await submitRanking({mode:"STAGE", diff:difficulty, stage:g.stage, score:g.score}); }catch{}
 
       if(g.stage >= STAGE_COUNT){
@@ -1560,7 +1528,6 @@
         return;
       }
 
-      // 次ステージへ自動
       g.stage += 1;
       selectedStage = g.stage;
       renderStageGrid();
@@ -1582,23 +1549,27 @@
     g.start();
   };
 
-  // ===== Online screen wiring =====
+  // ===== Online wiring =====
   document.getElementById("btnStartOnline").onclick=()=>{
     applyDifficulty(parseInt(difficultySel.value,10));
     showScreen("online");
     const room=new OnlineRoom();
     activeGame=room;
     room.ui.overlay.classList.add("on");
-    // laser btn
-    document.getElementById("onLaserBtn").onclick=()=>room.game?.fireLaser?.();
   };
 
-  // ===== Init =====
+  // ===== Menu init =====
   renderStageGrid();
   renderRank();
 
-  // ===== Global fire for activeGame =====
-  // （Space/Pはすでに keydownで activeGame に投げてる）
+  // ===== Online: safety push (相手に確実に届く) =====
+  setInterval(()=>{
+    if(activeGame instanceof OnlineRoom){
+      activeGame.pushMyState(false);
+    }
+  }, 150);
+
+  window.addEventListener("beforeunload",()=>{ try{ activeGame?.stop?.(); }catch{} });
 </script>
 </body>
 </html>
